@@ -1,0 +1,30 @@
+.tabbar {
+  display: none;
+}
+.fab {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .tabbar {
+    position: fixed; bottom: 0; left: 0; right: 0; background: var(--card);
+    border-top: 1px solid var(--border); display: flex; align-items: center;
+    justify-content: space-around; padding: 8px 0; z-index: 10;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+  .tab {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 6px 16px; border: none; background: none; font-size: 11px;
+    font-weight: 500; color: var(--text-muted); cursor: pointer;
+  }
+  .tab svg { width: 22px; height: 22px; }
+  .tab.active { color: var(--blue); }
+  .fab {
+    display: flex; position: fixed; bottom: 90px; right: 16px;
+    width: 52px; height: 52px; border-radius: 50%; background: var(--blue);
+    color: #fff; border: none; box-shadow: 0 4px 16px rgba(79,110,247,0.4);
+    align-items: center; justify-content: center; z-index: 20;
+    cursor: pointer; transition: transform 0.15s;
+  }
+  .fab:active { transform: scale(0.92); }
+}

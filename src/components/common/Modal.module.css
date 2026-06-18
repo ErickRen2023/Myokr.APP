@@ -1,0 +1,30 @@
+.overlay {
+  position: fixed; inset: 0; background: rgba(15,23,42,0.4); z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(2px);
+}
+.modal {
+  background: var(--card); border-radius: 16px; padding: 28px;
+  width: 480px; max-height: 80vh; overflow-y: auto;
+  box-shadow: var(--shadow-lg); position: relative;
+}
+.title { font-size: 18px; font-weight: 600; margin-bottom: 20px; }
+.close {
+  position: absolute; top: 16px; right: 16px; width: 28px; height: 28px;
+  border: none; background: none; font-size: 20px; color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center; border-radius: 50%;
+  cursor: pointer;
+}
+.close:hover { background: var(--bg); color: var(--text); }
+
+@media (max-width: 768px) {
+  .overlay { align-items: flex-end; }
+  .modal {
+    border-radius: 16px 16px 0 0; padding: 24px 20px;
+    width: 100%; max-width: 414px; max-height: 85vh;
+  }
+  .modal::before {
+    content: ''; display: block; width: 36px; height: 4px;
+    background: var(--border); border-radius: 2px; margin: 0 auto 16px;
+  }
+}

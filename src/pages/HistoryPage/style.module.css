@@ -1,0 +1,15 @@
+.loading { text-align: center; padding: 64px; }
+.empty { text-align: center; padding: 48px; color: var(--text-muted); }
+.title { font-size: 24px; font-weight: 700; margin-bottom: 24px; }
+.list { display: flex; flex-direction: column; gap: 12px; }
+.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; }
+.cardHeader { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; cursor: pointer; }
+.cardHeader:hover { background: var(--bg); }
+.cardTitle { font-size: 15px; font-weight: 600; }
+.badge { font-size: 12px; padding: 2px 8px; border-radius: 20px; background: var(--border); color: var(--text-secondary); }
+.cardBody { padding: 16px 24px 20px; border-top: 1px solid var(--border); }
+.objItem { padding: 14px 16px; background: var(--bg); border-radius: var(--radius-sm); margin-bottom: 10px; }
+.objItem:last-child { margin-bottom: 0; }
+.objTitle { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text-secondary); }
+.readBadge { font-size: 11px; padding: 2px 8px; border-radius: 20px; background: var(--orange); color: #fff; margin-left: 8px; }
+.krItem { font-size: 13px; color: var(--text-muted); padding: 4px 0; }

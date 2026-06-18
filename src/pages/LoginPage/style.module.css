@@ -1,0 +1,44 @@
+.page { display: flex; align-items: center; justify-content: center; min-height: 100vh; margin-left: -230px; }
+.container { width: 420px; text-align: center; }
+.logo { font-size: 32px; font-weight: 800; color: var(--blue); margin-bottom: 8px; letter-spacing: -0.5px; }
+.logo span { color: var(--text); font-weight: 600; }
+.desc { color: var(--text-secondary); font-size: 14px; margin-bottom: 32px; }
+.card { background: var(--card); border-radius: var(--radius); padding: 32px; box-shadow: var(--shadow-md); text-align: left; }
+.cardTitle { font-size: 18px; font-weight: 600; margin-bottom: 20px; text-align: center; }
+.field { margin-bottom: 16px; }
+.label { display: block; font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
+.input {
+  width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 14px; outline: none;
+}
+.input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-light); }
+.btnPrimary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; padding: 10px; background: var(--blue); color: #fff; border: none;
+  border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer;
+}
+.btnPrimary:hover { background: #3D5DE5; }
+.btnPrimary:disabled { opacity: 0.6; cursor: not-allowed; }
+.btnSecondary {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; padding: 10px; background: var(--bg); color: var(--text-secondary);
+  border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer;
+}
+.btnSecondary:hover { background: var(--border); }
+.divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: var(--text-muted); font-size: 12px; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.hint { font-size: 11px; color: var(--text-muted); margin-top: 16px; }
+.modalDesc { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; }
+.secretBox {
+  background: var(--bg); border: 2px dashed var(--blue); border-radius: var(--radius-sm);
+  padding: 16px; text-align: center; margin: 16px 0;
+}
+.secretVal { font-size: 18px; font-family: monospace; font-weight: 700; color: var(--blue); letter-spacing: 1px; word-break: break-all; }
+.secretWarn { font-size: 12px; color: var(--red); margin-top: 8px; text-align: center; }
+.modalBtns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+@media (max-width: 768px) {
+  .page { margin-left: 0; padding: 24px 16px; }
+  .container { width: 100%; max-width: 360px; }
+  .card { padding: 24px 20px; }
+}

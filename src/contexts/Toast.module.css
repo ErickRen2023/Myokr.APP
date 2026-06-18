@@ -1,0 +1,13 @@
+.toast {
+  position: fixed; top: 24px; right: 24px; z-index: 200;
+  background: var(--text); color: #fff; padding: 12px 20px;
+  border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
+  box-shadow: var(--shadow-md);
+  transform: translateX(120%); transition: transform 0.3s ease;
+}
+.show { transform: translateX(0); }
+
+@media (max-width: 768px) {
+  .toast { top: 16px; right: auto; left: 50%; transform: translateX(-50%) translateY(-120%); }
+  .show { transform: translateX(-50%) translateY(0); }
+}

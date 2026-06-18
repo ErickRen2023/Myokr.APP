@@ -1,0 +1,72 @@
+.loading { text-align: center; padding: 64px; }
+.topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+.topLeft { display: flex; align-items: center; gap: 12px; }
+.select { padding: 8px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; background: var(--card); cursor: pointer; outline: none; min-width: 200px; appearance: none; }
+.createBtn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; background: var(--blue); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer; }
+.createBtn:hover { background: #3D5DE5; }
+.overview { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+.statCard { background: var(--card); border-radius: var(--radius); padding: 20px 24px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+.statLabel { font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; }
+.statValue { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; }
+.statSub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.green { color: var(--green); }
+.blue { color: var(--blue); }
+.orange { color: var(--orange); }
+
+/* O Card */
+.oList { display: flex; flex-direction: column; gap: 16px; }
+.oCard { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; }
+.oHeader { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; cursor: pointer; user-select: none; }
+.oHeader:hover { background: var(--bg); }
+.oLeft { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+.oDot { width: 10px; height: 10px; border-radius: 50%; background: var(--blue); flex-shrink: 0; }
+.oTitle { font-size: 16px; font-weight: 600; }
+.oMeta { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.oBadge { font-size: 13px; font-weight: 600; color: var(--blue); background: var(--blue-light); padding: 4px 10px; border-radius: 20px; }
+.oChev { width: 20px; height: 20px; color: var(--text-muted); flex-shrink: 0; }
+.oCard.expanded .oChev { transform: rotate(180deg); }
+.oBody { border-top: 1px solid var(--border); padding: 16px 24px 20px; }
+
+/* KR Item */
+.krList { display: flex; flex-direction: column; gap: 14px; }
+.krItem { padding: 14px 16px; background: var(--bg); border-radius: var(--radius-sm); }
+.krHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 8px; }
+.krTitle { font-size: 14px; font-weight: 500; }
+.krValue { font-size: 12px; font-weight: 600; color: var(--blue); white-space: nowrap; }
+.krBar { height: 8px; background: var(--border); border-radius: var(--radius-xs); overflow: hidden; }
+.krBarFill { height: 100%; border-radius: var(--radius-xs); transition: width 0.3s; }
+.krBarFill.green { background: var(--green); }
+.krBarFill.blue { background: var(--blue); }
+.krBarFill.orange { background: var(--orange); }
+.krBarFill.red { background: var(--red); }
+
+/* Milestone */
+.msList { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.msItem { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-secondary); padding: 4px 0; }
+.msCheck { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px; color: #fff; }
+.msCheckDone { background: var(--green); border-color: var(--green); }
+.msDone .msCheck { background: var(--green); border-color: var(--green); }
+.msDone span { text-decoration: line-through; color: var(--text-muted); }
+
+/* Buttons */
+.updateBtn { margin-top: 10px; padding: 6px 14px; font-size: 12px; font-weight: 500; border: 1px solid var(--blue); color: var(--blue); background: var(--blue-light); border-radius: var(--radius-xs); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+.addKrBtn { margin-top: 12px; padding: 8px 16px; font-size: 13px; font-weight: 500; border: 1px dashed var(--border); color: var(--text-secondary); background: none; border-radius: var(--radius-sm); cursor: pointer; width: 100%; }
+.addKrBtn:hover { border-color: var(--blue); color: var(--blue); }
+
+/* Form */
+.field { margin-bottom: 16px; }
+.fLabel { display: block; font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
+.fInput { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; outline: none; background: var(--card); box-sizing: border-box; }
+.fInput:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-light); }
+.modalBtns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+.btnPri { padding: 10px 20px; background: var(--blue); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer; }
+.btnSec { padding: 10px 20px; background: var(--bg); color: var(--text-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer; }
+.krTitle { font-size: 14px; font-weight: 600; margin-bottom: 16px; }
+
+@media (max-width: 768px) {
+  .overview { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .topbar { flex-direction: column; gap: 10px; align-items: stretch; }
+  .topLeft { width: 100%; }
+  .select { width: 100%; min-width: 0; }
+  .createBtn { justify-content: center; }
+}

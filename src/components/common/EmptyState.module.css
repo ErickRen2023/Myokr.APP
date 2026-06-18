@@ -1,0 +1,4 @@
+.wrapper { text-align: center; padding: 64px 24px; }
+.icon { width: 64px; height: 64px; margin: 0 auto 20px; color: var(--text-muted); }
+.title { font-size: 18px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
+.desc { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; }

@@ -1,0 +1,6 @@
+.app { display: flex; min-height: 100vh; padding-bottom: 0; }
+.main { flex: 1; margin-left: 230px; padding: 32px 40px; max-width: 1200px; }
+
+@media (max-width: 768px) {
+  .main { margin-left: 0; padding: 16px 16px 80px; max-width: none; }
+}
