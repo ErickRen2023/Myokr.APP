@@ -61,6 +61,9 @@
 .modalBtns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
 .btnPri { padding: 10px 20px; background: var(--blue); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer; }
 .btnSec { padding: 10px 20px; background: var(--bg); color: var(--text-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer; }
+.cyclePreview { padding: 12px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.cyclePreviewName { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.cyclePreviewDate { font-size: 13px; color: var(--text-muted); }
 .krTitle { font-size: 14px; font-weight: 600; margin-bottom: 16px; }
 
 @media (max-width: 768px) {
