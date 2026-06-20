@@ -54,7 +54,9 @@ jobs:
           script: |
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u erickren2023 --password-stdin
             docker pull ${{ env.IMAGE }}:latest
-            docker stop fe || true
-            docker rm fe || true
+            if docker ps -a --format '{{.Names}}' | grep -q '^fe$'; then
+              docker stop fe
+              docker rm fe
+            fi
             docker run --name fe --network nginx-net -d \
               ${{ env.IMAGE }}:latest
