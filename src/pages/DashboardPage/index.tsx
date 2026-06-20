@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useCycles } from '../../contexts/CycleContext';
 import { useToast } from '../../contexts/ToastContext';
 import { fetchDashboard } from '../../api/dashboard';
@@ -37,7 +36,6 @@ function defaultCycleDates() {
 export function DashboardPage() {
   const { cycles, currentCycleId, loading: cyclesLoading, setCurrentCycleId, refreshCycles } = useCycles();
   const { showToast } = useToast();
-  const navigate = useNavigate();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -201,16 +199,13 @@ export function DashboardPage() {
           title="还没有周期"
           description="OKR 按周期管理，请先创建一个周期再设定目标"
           action={
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-              <button className={styles.createBtn} onClick={() => {
-                const d = defaultCycleDates();
-                setNewCycleType(3);
-                setNewCycleStart(d.start_date);
-                setNewCycleEnd(d.end_date);
-                setShowCreateCycle(true);
-              }}>创建第一个周期</button>
-              <button className={styles.btnSec} onClick={() => navigate('/settings')}>前往设置</button>
-            </div>
+            <button className={styles.createBtn} onClick={() => {
+              const d = defaultCycleDates();
+              setNewCycleType(3);
+              setNewCycleStart(d.start_date);
+              setNewCycleEnd(d.end_date);
+              setShowCreateCycle(true);
+            }}>创建第一个周期</button>
           }
         />
       );

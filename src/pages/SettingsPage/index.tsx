@@ -52,23 +52,6 @@ export function SettingsPage() {
     <div>
       <h2 className={styles.title}>设置</h2>
       <div className={styles.section}>
-        <div className={styles.sectionTitle}>身份信息</div>
-        <div className={styles.setCard}>
-          <div className={styles.row}>
-            <span className={styles.rowLabel}>当前秘钥</span>
-            <span className={styles.rowValue}>****</span>
-          </div>
-          <div className={styles.row}>
-            <span className={styles.rowLabel}>身份创建时间</span>
-            <span>—</span>
-          </div>
-          <div className={styles.row}>
-            <span className={styles.rowLabel}>数据周期数</span>
-            <span>—</span>
-          </div>
-        </div>
-      </div>
-      <div className={styles.section}>
         <div className={styles.dangerTitle}>⚠️ 危险区域</div>
         <div className={styles.dangerCard}>
           <p className={styles.dangerDesc}>生成新秘钥后，旧秘钥将立即失效。丢失秘钥数据不可恢复。</p>
@@ -76,7 +59,7 @@ export function SettingsPage() {
         </div>
       </div>
 
-      <Modal isOpen={showReset} onClose={() => !resetting && !newKey && setShowReset(false)} title="生成新秘钥">
+      <Modal isOpen={showReset} onClose={() => !resetting && setShowReset(false)} title="生成新秘钥">
         {!newKey ? (
           <>
             <p className={styles.warnText}>⚠️ 此操作将使旧秘钥立即失效。请确认已保存当前数据。</p>

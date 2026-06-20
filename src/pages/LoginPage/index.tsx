@@ -101,7 +101,7 @@ export function LoginPage() {
         <p className={styles.hint}>秘钥是你唯一的身份凭证，丢失后数据不可恢复</p>
       </div>
 
-      <Modal isOpen={showCreateIdentity} onClose={() => {}} title="✨ 你的新身份已创建">
+      <Modal isOpen={showCreateIdentity} onClose={confirmCreateIdentity} title="✨ 你的新身份已创建">
         <p className={styles.modalDesc}>以下是你的唯一身份秘钥，请立即保存：</p>
         <div className={styles.secretBox}>
           <div className={styles.secretVal}>{generatedKey}</div>
