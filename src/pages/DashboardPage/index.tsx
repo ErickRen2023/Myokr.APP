@@ -9,29 +9,16 @@ import { updateProgress, toggleAchieved } from '../../api/keyResults';
 import { toggleMilestone } from '../../api/milestones';
 import { Modal } from '../../components/common/Modal';
 import { EmptyState } from '../../components/common/EmptyState';
-import { DateInput } from '../../components/common/DateInput';
+import { CycleType } from '../../types/enums';
+import {
+  getCycleDates,
+  getDefaultPeriod,
+  getPeriodOptions,
+  getCycleDisplayName,
+  getYearOptions,
+} from '../../utils/cycleDates';
 import type { DashboardData, Objective, KeyResult } from '../../types';
 import styles from './style.module.css';
-
-function getMonday(d: Date) {
-  const date = new Date(d);
-  const day = date.getDay();
-  const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-  date.setDate(diff);
-  return date;
-}
-
-function formatDate(d: Date) {
-  return d.toISOString().slice(0, 10);
-}
-
-function defaultCycleDates() {
-  const now = new Date();
-  const start = getMonday(now);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 90);
-  return { start_date: formatDate(start), end_date: formatDate(end) };
-}
 
 export function DashboardPage() {
   const { cycles, currentCycleId, loading: cyclesLoading, setCurrentCycleId, refreshCycles } = useCycles();
@@ -48,8 +35,8 @@ export function DashboardPage() {
   // Create Cycle modal
   const [showCreateCycle, setShowCreateCycle] = useState(false);
   const [newCycleType, setNewCycleType] = useState(3);
-  const [newCycleStart, setNewCycleStart] = useState('');
-  const [newCycleEnd, setNewCycleEnd] = useState('');
+  const [newCycleYear, setNewCycleYear] = useState(new Date().getFullYear());
+  const [newCyclePeriod, setNewCyclePeriod] = useState(2);
   const [creatingCycle, setCreatingCycle] = useState(false);
 
   // Create KR modal
@@ -105,23 +92,16 @@ export function DashboardPage() {
   }, [cycles.length, currentCycleId, showToast]);
 
   const handleCreateCycle = async () => {
-    if (!newCycleStart || !newCycleEnd) {
-      showToast('请选择开始和结束日期');
-      return;
-    }
-    if (newCycleStart >= newCycleEnd) {
-      showToast('结束日期必须晚于开始日期');
-      return;
-    }
+    const { start, end } = getCycleDates(newCycleType as CycleType, newCycleYear, newCyclePeriod);
     setCreatingCycle(true);
     try {
-      const res = await createCycle({ type: newCycleType, start_date: newCycleStart, end_date: newCycleEnd });
+      const res = await createCycle({ type: newCycleType, start_date: start, end_date: end });
       if (res.code === 0) {
         setShowCreateCycle(false);
         showToast('周期已创建');
         await refreshCycles();
       } else {
-        showToast('创建周期失败');
+        showToast(res.message || '创建周期失败');
       }
     } catch {
       showToast('创建周期失败');
@@ -200,10 +180,10 @@ export function DashboardPage() {
           description="OKR 按周期管理，请先创建一个周期再设定目标"
           action={
             <button className={styles.createBtn} onClick={() => {
-              const d = defaultCycleDates();
+              const dp = getDefaultPeriod(CycleType.Quarterly);
               setNewCycleType(3);
-              setNewCycleStart(d.start_date);
-              setNewCycleEnd(d.end_date);
+              setNewCycleYear(dp.year);
+              setNewCyclePeriod(dp.period);
               setShowCreateCycle(true);
             }}>创建第一个周期</button>
           }
@@ -311,7 +291,13 @@ export function DashboardPage() {
       <Modal isOpen={showCreateCycle} onClose={() => setShowCreateCycle(false)} title="创建新周期">
         <div className={styles.field}>
           <label className={styles.fLabel}>周期类型</label>
-          <select className={styles.fInput} value={newCycleType} onChange={e => setNewCycleType(Number(e.target.value))}>
+          <select className={styles.fInput} value={newCycleType} onChange={e => {
+            const t = Number(e.target.value) as CycleType;
+            setNewCycleType(t);
+            const dp = getDefaultPeriod(t);
+            setNewCycleYear(dp.year);
+            setNewCyclePeriod(dp.period);
+          }}>
             <option value={1}>月度（M）</option>
             <option value={2}>双月度</option>
             <option value={3}>季度（Q）</option>
@@ -319,14 +305,39 @@ export function DashboardPage() {
             <option value={5}>年度</option>
           </select>
         </div>
+
         <div className={styles.field}>
-          <label className={styles.fLabel}>开始日期</label>
-          <DateInput value={newCycleStart} onChange={setNewCycleStart} placeholder="选择开始日期" />
+          <label className={styles.fLabel}>选择周期</label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <select className={styles.fInput} value={newCycleYear} onChange={e => setNewCycleYear(Number(e.target.value))}>
+              {getYearOptions().map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+            {getPeriodOptions(newCycleType as CycleType).length > 0 && (
+              <select className={styles.fInput} value={newCyclePeriod} onChange={e => setNewCyclePeriod(Number(e.target.value))}>
+                {getPeriodOptions(newCycleType as CycleType).map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            )}
+          </div>
         </div>
-        <div className={styles.field}>
-          <label className={styles.fLabel}>结束日期</label>
-          <DateInput value={newCycleEnd} onChange={setNewCycleEnd} placeholder="选择结束日期" />
-        </div>
+
+        {(() => {
+          const { start, end } = getCycleDates(newCycleType as CycleType, newCycleYear, newCyclePeriod);
+          const name = getCycleDisplayName(newCycleType as CycleType, newCycleYear, newCyclePeriod);
+          return (
+            <div className={styles.field}>
+              <label className={styles.fLabel}>周期范围</label>
+              <div className={styles.cyclePreview}>
+                <div className={styles.cyclePreviewName}>{name}</div>
+                <div className={styles.cyclePreviewDate}>{start} 至 {end}</div>
+              </div>
+            </div>
+          );
+        })()}
+
         <div className={styles.modalBtns}>
           <button className={styles.btnSec} onClick={() => setShowCreateCycle(false)} disabled={creatingCycle}>取消</button>
           <button className={styles.btnPri} onClick={handleCreateCycle} disabled={creatingCycle}>

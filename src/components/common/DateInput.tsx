@@ -8,6 +8,10 @@ interface DateInputProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  minDate?: Date;
+  maxDate?: Date;
+  filterDate?: (date: Date) => boolean;
+  disabled?: boolean;
 }
 
 const CustomInput = forwardRef<HTMLInputElement, { value?: string; placeholder?: string; onClick?: () => void; className?: string }>(
@@ -23,7 +27,7 @@ const CustomInput = forwardRef<HTMLInputElement, { value?: string; placeholder?:
 
 CustomInput.displayName = 'CustomInput';
 
-export function DateInput({ value, onChange, placeholder, className }: DateInputProps) {
+export function DateInput({ value, onChange, placeholder, className, minDate, maxDate, filterDate, disabled }: DateInputProps) {
   const selected = value ? new Date(value + 'T00:00:00') : null;
 
   return (
@@ -44,6 +48,10 @@ export function DateInput({ value, onChange, placeholder, className }: DateInput
       showPopperArrow={false}
       popperPlacement="bottom-start"
       popperProps={{ strategy: 'fixed' }}
+      minDate={minDate}
+      maxDate={maxDate}
+      filterDate={filterDate}
+      disabled={disabled}
     />
   );
 }
