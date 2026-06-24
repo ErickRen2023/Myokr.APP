@@ -43,6 +43,7 @@ export function DashboardPage() {
   const [showCreateKR, setShowCreateKR] = useState(false);
   const [krObjectiveId, setKrObjectiveId] = useState(0);
   const [krDesc, setKrDesc] = useState('');
+  const [krDescription, setKrDescription] = useState('');
   const [krType, setKrType] = useState(1);
   const [krTargetVal, setKrTargetVal] = useState('');
   const [krUnit, setKrUnit] = useState('');
@@ -123,7 +124,7 @@ export function DashboardPage() {
   };
 
   const handleCreateKR = async () => {
-    if (!krDesc.trim()) { showToast('请输入 KR 描述'); return; }
+    if (!krDesc.trim()) { showToast('请输入 KR 标题'); return; }
     if (krType === 1) {
       if (!krTargetVal.trim() || isNaN(Number(krTargetVal))) { showToast('请输入有效的目标值'); return; }
       if (!krUnit.trim()) { showToast('请输入单位'); return; }
@@ -131,7 +132,7 @@ export function DashboardPage() {
     try {
       const target: Record<string, unknown> = krType === 1 ? { value: Number(krTargetVal), unit: krUnit.trim() } : {};
       const milestones = krType === 2 ? krMilestones.filter(m => m.trim()).map((m, i) => ({ description: m, sort_order: i })) : undefined;
-      await createKeyResult({ objective_id: krObjectiveId, description: krDesc.trim(), type: krType, target, milestones });
+      await createKeyResult({ objective_id: krObjectiveId, title: krDesc.trim(), description: krDescription.trim() || undefined, type: krType, target, milestones });
       setShowCreateKR(false);
       showToast('关键结果已创建');
       loadDashboard();
@@ -271,6 +272,7 @@ export function DashboardPage() {
             }} onCreateKR={(objId) => {
               setKrObjectiveId(objId);
               setKrDesc('');
+              setKrDescription('');
               setKrType(1);
               setKrTargetVal('');
               setKrUnit('');
@@ -371,8 +373,12 @@ export function DashboardPage() {
       {/* Create KR Modal */}
       <Modal isOpen={showCreateKR} onClose={() => setShowCreateKR(false)} title="创建关键结果">
         <div className={styles.field}>
-          <label className={styles.fLabel}>KR 描述 <span style={{ color: 'var(--red)' }}>*</span></label>
+          <label className={styles.fLabel}>KR 标题 <span style={{ color: 'var(--red)' }}>*</span></label>
           <input className={styles.fInput} value={krDesc} onChange={e => setKrDesc(e.target.value)} placeholder="如：GitHub 获得 500 Star" />
+        </div>
+        <div className={styles.field}>
+          <label className={styles.fLabel}>描述（选填）</label>
+          <textarea className={styles.fInput} rows={2} value={krDescription} onChange={e => setKrDescription(e.target.value)} placeholder="补充 KR 的背景与细节" style={{ resize: 'vertical' }} />
         </div>
         <div className={styles.field}>
           <label className={styles.fLabel}>类型</label>
@@ -420,7 +426,7 @@ export function DashboardPage() {
       <Modal isOpen={showProgress} onClose={() => setShowProgress(false)} title="更新 KR 进度">
         {editingKR && (
           <>
-            <div className={styles.krTitle}>{editingKR.description}</div>
+            <div className={styles.krTitle}>{editingKR.title}</div>
             {editingKR.type === 1 && (
               <div className={styles.field}>
                 <label className={styles.fLabel}>当前进展</label>
@@ -516,13 +522,14 @@ function KRItem({ kr, onEdit }: { kr: KeyResult; onEdit: () => void }) {
   return (
     <div className={styles.krItem}>
       <div className={styles.krHeader}>
-        <span className={styles.krTitle}>{kr.description}</span>
+        <span className={styles.krTitle}>{kr.title}</span>
         <span className={styles.krValue}>
           {kr.type === 1 ? `${kr.current_value ?? 0} / ${(kr.target as Record<string, unknown>)?.value ?? '?'} ${(kr.target as Record<string, unknown>)?.unit ?? ''}` : ''}
           {kr.type === 2 ? `${kr.milestones?.filter(m => m.completed).length ?? 0}/${kr.milestones?.length ?? 0} 节点` : ''}
           {kr.type === 3 ? (kr.is_achieved ? '已达成' : '未达成') : ''} ({p}%)
         </span>
       </div>
+      {kr.description && <div className={styles.krDesc}>{kr.description}</div>}
       <div className={styles.krBar}>
         <div className={`${styles.krBarFill} ${styles[color]}`} style={{ width: `${Math.min(p, 100)}%` }} />
       </div>

@@ -7,7 +7,8 @@ export function listKeyResults(objective_id: string): Promise<ApiResponse<{ key_
 
 export function createKeyResult(data: {
   objective_id: number;
-  description: string;
+  title: string;
+  description?: string;
   type: number;
   target?: Record<string, unknown>;
   milestones?: { description: string; sort_order: number }[];
@@ -17,6 +18,7 @@ export function createKeyResult(data: {
 
 export function updateKeyResult(data: {
   id: number;
+  title?: string;
   description?: string;
   target?: Record<string, unknown>;
 }): Promise<ApiResponse<KeyResult>> {

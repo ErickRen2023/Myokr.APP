@@ -79,7 +79,7 @@ export function HistoryPage() {
                   <div key={obj.id} className={styles.objItem}>
                     <div className={styles.objTitle}>{obj.title} <span className={styles.readBadge}>只读</span></div>
                     {obj.key_results.map(kr => (
-                      <div key={kr.id} className={styles.krItem}>• {kr.description} — {kr.progress}% 完成</div>
+                      <div key={kr.id} className={styles.krItem}>• {kr.title} — {kr.progress}% 完成{kr.description && <span className={styles.krDesc}> — {kr.description}</span>}</div>
                     ))}
                   </div>
                 ))}

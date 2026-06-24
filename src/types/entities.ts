@@ -19,6 +19,7 @@ export interface Milestone {
 
 export interface KeyResult {
   id: number;
+  title: string;
   description: string;
   type: number;
   target: Record<string, unknown>;
