@@ -12,6 +12,7 @@ export function createKeyResult(data: {
   type: number;
   target?: Record<string, unknown>;
   milestones?: { description: string; sort_order: number }[];
+  sort_order?: number;
 }): Promise<ApiResponse<KeyResult>> {
   return client.post('/key-results/create', data);
 }
@@ -21,6 +22,7 @@ export function updateKeyResult(data: {
   title?: string;
   description?: string;
   target?: Record<string, unknown>;
+  sort_order?: number;
 }): Promise<ApiResponse<KeyResult>> {
   return client.post('/key-results/update', data);
 }
@@ -35,4 +37,8 @@ export function toggleAchieved(id: number, is_achieved: number): Promise<ApiResp
 
 export function archiveKeyResult(id: number): Promise<ApiResponse<null>> {
   return client.post('/key-results/archive', { id });
+}
+
+export function reorderKeyResults(data: { id: number; sort_order: number }[]): Promise<ApiResponse<null>> {
+  return client.post('/key-results/reorder', data);
 }

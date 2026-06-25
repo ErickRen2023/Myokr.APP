@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
+import { DragDropContext, Droppable, Draggable, type DropResult, type DraggableProvided, type DraggableStateSnapshot } from '@hello-pangea/dnd';
 import { useCycles } from '../../contexts/CycleContext';
 import { useToast } from '../../contexts/ToastContext';
 import { fetchDashboard } from '../../api/dashboard';
-import { createObjective } from '../../api/objectives';
-import { createKeyResult } from '../../api/keyResults';
+import { createObjective, reorderObjectives } from '../../api/objectives';
+import { createKeyResult, reorderKeyResults } from '../../api/keyResults';
 import { createCycle } from '../../api/cycles';
 import { updateProgress, toggleAchieved } from '../../api/keyResults';
-import { toggleMilestone } from '../../api/milestones';
+import { toggleMilestone, reorderMilestones } from '../../api/milestones';
 import { Modal } from '../../components/common/Modal';
 import { EmptyState } from '../../components/common/EmptyState';
 import { CycleType } from '../../types/enums';
@@ -70,6 +71,56 @@ export function DashboardPage() {
       setLoading(false);
     }
   }, [currentCycleId, showToast]);
+
+  const handleDragEnd = useCallback(async (result: DropResult) => {
+    const { source, destination, type } = result;
+    if (!destination || !data) return;
+    if (source.droppableId === destination.droppableId && source.index === destination.index) return;
+
+    const newData = structuredClone(data);
+
+    if (type === 'objectives') {
+      const [moved] = newData.objectives.splice(source.index, 1);
+      newData.objectives.splice(destination.index, 0, moved);
+      setData(newData);
+      try {
+        await reorderObjectives(newData.objectives.map((o, i) => ({ id: o.id, sort_order: i })));
+      } catch {
+        showToast('排序更新失败');
+        loadDashboard();
+      }
+    } else if (type === 'keyresults') {
+      const objId = Number(source.droppableId.replace('krs-', ''));
+      const obj = newData.objectives.find(o => o.id === objId);
+      if (!obj) return;
+      const [moved] = obj.key_results.splice(source.index, 1);
+      obj.key_results.splice(destination.index, 0, moved);
+      setData(newData);
+      try {
+        await reorderKeyResults(obj.key_results.map((kr, i) => ({ id: kr.id, sort_order: i })));
+      } catch {
+        showToast('排序更新失败');
+        loadDashboard();
+      }
+    } else if (type === 'milestones') {
+      for (const obj of newData.objectives) {
+        for (const kr of obj.key_results) {
+          if (kr.milestones && `milestones-${kr.id}` === source.droppableId) {
+            const [moved] = kr.milestones.splice(source.index, 1);
+            kr.milestones.splice(destination.index, 0, moved);
+            setData(newData);
+            try {
+              await reorderMilestones(kr.milestones.map((ms, i) => ({ id: ms.id, sort_order: i })));
+            } catch {
+              showToast('排序更新失败');
+              loadDashboard();
+            }
+            return;
+          }
+        }
+      }
+    }
+  }, [data, showToast, loadDashboard]);
 
   useEffect(() => {
     loadDashboard();
@@ -262,25 +313,40 @@ export function DashboardPage() {
           </div>
         </div>
 
-        <div className={styles.oList}>
-          {data.objectives.map((obj: Objective) => (
-            <OCard key={obj.id} obj={obj} onEditKR={(kr) => {
-              setEditingKR(kr);
-              setProgressVal(String(kr.current_value ?? ''));
-              setToggledMsIds(new Set());
-              setShowProgress(true);
-            }} onCreateKR={(objId) => {
-              setKrObjectiveId(objId);
-              setKrDesc('');
-              setKrDescription('');
-              setKrType(1);
-              setKrTargetVal('');
-              setKrUnit('');
-              setKrMilestones(['']);
-              setShowCreateKR(true);
-            }} />
-          ))}
-        </div>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="objectives" type="objectives">
+            {(provided) => (
+              <div className={styles.oList} ref={provided.innerRef} {...provided.droppableProps}>
+                {data.objectives.map((obj: Objective, index: number) => (
+                  <Draggable key={obj.id} draggableId={`o-${obj.id}`} index={index}>
+                    {(dragProvided, dragSnapshot) => (
+                      <OCard
+                        obj={obj}
+                        provided={dragProvided}
+                        snapshot={dragSnapshot}
+                        onEditKR={(kr) => {
+                          setEditingKR(kr);
+                          setProgressVal(String(kr.current_value ?? ''));
+                          setToggledMsIds(new Set());
+                          setShowProgress(true);
+                        }} onCreateKR={(objId) => {
+                          setKrObjectiveId(objId);
+                          setKrDesc('');
+                          setKrDescription('');
+                          setKrType(1);
+                          setKrTargetVal('');
+                          setKrUnit('');
+                          setKrMilestones(['']);
+                          setShowCreateKR(true);
+                        }} />
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
       </>
     );
   };
@@ -479,15 +545,21 @@ export function DashboardPage() {
   );
 }
 
-function OCard({ obj, onEditKR, onCreateKR }: {
+function OCard({ obj, provided, snapshot, onEditKR, onCreateKR }: {
   obj: Objective;
+  provided: DraggableProvided;
+  snapshot: DraggableStateSnapshot;
   onEditKR: (kr: KeyResult) => void;
   onCreateKR: (objId: number) => void;
 }) {
   const [expanded, setExpanded] = useState(true);
 
   return (
-    <div className={`${styles.oCard} ${expanded ? styles.expanded : ''}`}>
+    <div
+      className={`${styles.oCard} ${expanded ? styles.expanded : ''} ${snapshot.isDragging ? styles.dragging : ''}`}
+      ref={provided.innerRef}
+      {...provided.draggableProps}
+    >
       <div className={styles.oHeader} onClick={() => setExpanded(!expanded)}>
         <div className={styles.oLeft}>
           <div className={styles.oDot} />
@@ -498,16 +570,37 @@ function OCard({ obj, onEditKR, onCreateKR }: {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div className={styles.oBadge}>{obj.progress}%</div>
+          <div className={styles.dragHandle} {...provided.dragHandleProps} onClick={(e) => e.stopPropagation()}>
+            <svg width="14" height="14" viewBox="0 0 12 12" fill="currentColor" opacity="0.35">
+              <circle cx="3" cy="2" r="1"/><circle cx="9" cy="2" r="1"/>
+              <circle cx="3" cy="6" r="1"/><circle cx="9" cy="6" r="1"/>
+              <circle cx="3" cy="10" r="1"/><circle cx="9" cy="10" r="1"/>
+            </svg>
+          </div>
           <svg className={styles.oChev} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
       </div>
       {expanded && (
         <div className={styles.oBody}>
-          <div className={styles.krList}>
-            {obj.key_results.map(kr => (
-              <KRItem key={kr.id} kr={kr} onEdit={() => onEditKR(kr)} />
-            ))}
-          </div>
+          <Droppable droppableId={`krs-${obj.id}`} type="keyresults">
+            {(krProvided) => (
+              <div className={styles.krList} ref={krProvided.innerRef} {...krProvided.droppableProps}>
+                {obj.key_results.map((kr, krIndex) => (
+                  <Draggable key={kr.id} draggableId={`kr-${kr.id}`} index={krIndex}>
+                    {(krDragProvided, krDragSnapshot) => (
+                      <KRItem
+                        kr={kr}
+                        provided={krDragProvided}
+                        snapshot={krDragSnapshot}
+                        onEdit={() => onEditKR(kr)}
+                      />
+                    )}
+                  </Draggable>
+                ))}
+                {krProvided.placeholder}
+              </div>
+            )}
+          </Droppable>
           <button className={styles.addKrBtn} onClick={(e) => { e.stopPropagation(); onCreateKR(obj.id); }}>+ 添加关键结果</button>
         </div>
       )}
@@ -515,33 +608,71 @@ function OCard({ obj, onEditKR, onCreateKR }: {
   );
 }
 
-function KRItem({ kr, onEdit }: { kr: KeyResult; onEdit: () => void }) {
+function KRItem({ kr, provided, snapshot, onEdit }: {
+  kr: KeyResult;
+  provided: DraggableProvided;
+  snapshot: DraggableStateSnapshot;
+  onEdit: () => void;
+}) {
   const p = kr.progress;
   const color = p >= 80 ? 'green' : p >= 50 ? 'blue' : p >= 25 ? 'orange' : 'red';
 
   return (
-    <div className={styles.krItem}>
+    <div
+      className={`${styles.krItem} ${snapshot.isDragging ? styles.dragging : ''}`}
+      ref={provided.innerRef}
+      {...provided.draggableProps}
+    >
       <div className={styles.krHeader}>
         <span className={styles.krTitle}>{kr.title}</span>
-        <span className={styles.krValue}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span className={styles.krValue}>
           {kr.type === 1 ? `${kr.current_value ?? 0} / ${(kr.target as Record<string, unknown>)?.value ?? '?'} ${(kr.target as Record<string, unknown>)?.unit ?? ''}` : ''}
           {kr.type === 2 ? `${kr.milestones?.filter(m => m.completed).length ?? 0}/${kr.milestones?.length ?? 0} 节点` : ''}
           {kr.type === 3 ? (kr.is_achieved ? '已达成' : '未达成') : ''} ({p}%)
-        </span>
+          </span>
+          <div className={styles.dragHandle} {...provided.dragHandleProps}>
+            <svg width="14" height="14" viewBox="0 0 12 12" fill="currentColor" opacity="0.35">
+              <circle cx="3" cy="2" r="1"/><circle cx="9" cy="2" r="1"/>
+              <circle cx="3" cy="6" r="1"/><circle cx="9" cy="6" r="1"/>
+              <circle cx="3" cy="10" r="1"/><circle cx="9" cy="10" r="1"/>
+            </svg>
+          </div>
+        </div>
       </div>
       {kr.description && <div className={styles.krDesc}>{kr.description}</div>}
       <div className={styles.krBar}>
         <div className={`${styles.krBarFill} ${styles[color]}`} style={{ width: `${Math.min(p, 100)}%` }} />
       </div>
       {kr.type === 2 && kr.milestones && (
-        <div className={styles.msList}>
-          {kr.milestones.map(m => (
-            <div key={m.id} className={`${styles.msItem} ${m.completed ? styles.msDone : ''}`}>
-              <div className={`${styles.msCheck} ${m.completed ? styles.msCheckDone : ''}`}>{m.completed ? '✓' : ''}</div>
-              <span>{m.description}</span>
+        <Droppable droppableId={`milestones-${kr.id}`} type="milestones">
+          {(msProvided) => (
+            <div className={styles.msList} ref={msProvided.innerRef} {...msProvided.droppableProps}>
+              {kr.milestones!.map((m, msIndex) => (
+                <Draggable key={m.id} draggableId={`ms-${m.id}`} index={msIndex}>
+                  {(msDragProvided, msDragSnapshot) => (
+                    <div
+                      className={`${styles.msItem} ${m.completed ? styles.msDone : ''} ${msDragSnapshot.isDragging ? styles.dragging : ''}`}
+                      ref={msDragProvided.innerRef as React.Ref<HTMLDivElement>}
+                      {...msDragProvided.draggableProps}
+                    >
+                      <div className={`${styles.msCheck} ${m.completed ? styles.msCheckDone : ''}`}>{m.completed ? '✓' : ''}</div>
+                      <span style={{ flex: 1 }}>{m.description}</span>
+                      <div className={styles.dragHandle} {...msDragProvided.dragHandleProps}>
+                        <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor" opacity="0.3">
+                          <circle cx="3" cy="2" r="1"/><circle cx="9" cy="2" r="1"/>
+                          <circle cx="3" cy="6" r="1"/><circle cx="9" cy="6" r="1"/>
+                          <circle cx="3" cy="10" r="1"/><circle cx="9" cy="10" r="1"/>
+                        </svg>
+                      </div>
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {msProvided.placeholder}
             </div>
-          ))}
-        </div>
+          )}
+        </Droppable>
       )}
       <button className={styles.updateBtn} onClick={onEdit}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><path d="M21 16v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg>
