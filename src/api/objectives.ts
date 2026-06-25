@@ -20,3 +20,7 @@ export function archiveObjective(id: number): Promise<{ code: number; data: null
 export function restoreObjective(id: number): Promise<{ code: number; data: Objective }> {
   return client.post('/objectives/restore', { id });
 }
+
+export function reorderObjectives(data: { id: number; sort_order: number }[]): Promise<{ code: number; data: null }> {
+  return client.post('/objectives/reorder', data);
+}

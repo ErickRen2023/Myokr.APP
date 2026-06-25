@@ -25,6 +25,7 @@ export interface KeyResult {
   target: Record<string, unknown>;
   current_value: number | null;
   is_achieved: boolean;
+  sort_order: number;
   status: number;
   progress: number;
   milestones?: Milestone[];

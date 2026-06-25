@@ -13,6 +13,20 @@
 .blue { color: var(--blue); }
 .orange { color: var(--orange); }
 
+/* Drag and Drop */
+.dragHandle {
+  cursor: grab;
+  color: var(--text-muted);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  border-radius: 3px;
+}
+.dragHandle:active { cursor: grabbing; }
+.dragHandle:hover { background: var(--border); }
+.dragging { opacity: 0.5; }
+
 /* O Card */
 .oList { display: flex; flex-direction: column; gap: 16px; }
 .oCard { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; }
