@@ -7,7 +7,7 @@ import { createObjective, reorderObjectives } from '../../api/objectives';
 import { createKeyResult, reorderKeyResults } from '../../api/keyResults';
 import { createCycle } from '../../api/cycles';
 import { updateProgress, toggleAchieved } from '../../api/keyResults';
-import { toggleMilestone, reorderMilestones } from '../../api/milestones';
+import { toggleMilestone } from '../../api/milestones';
 import { Modal } from '../../components/common/Modal';
 import { EmptyState } from '../../components/common/EmptyState';
 import { CycleType } from '../../types/enums';
@@ -20,6 +20,8 @@ import {
 } from '../../utils/cycleDates';
 import type { DashboardData, Objective, KeyResult } from '../../types';
 import styles from './style.module.css';
+import { EditObjectiveModal } from './EditObjectiveModal';
+import { EditKeyResultModal } from './EditKeyResultModal';
 
 export function DashboardPage() {
   const { cycles, currentCycleId, loading: cyclesLoading, setCurrentCycleId, refreshCycles } = useCycles();
@@ -55,6 +57,14 @@ export function DashboardPage() {
   const [editingKR, setEditingKR] = useState<KeyResult | null>(null);
   const [progressVal, setProgressVal] = useState('');
   const [toggledMsIds, setToggledMsIds] = useState<Set<number>>(new Set());
+
+  // Edit O modal
+  const [showEditO, setShowEditO] = useState(false);
+  const [editingObj, setEditingObj] = useState<Objective | null>(null);
+
+  // Edit KR modal
+  const [showEditKR, setShowEditKR] = useState(false);
+  const [editingKrForEdit, setEditingKrForEdit] = useState<KeyResult | null>(null);
 
   const loadDashboard = useCallback(async () => {
     if (!currentCycleId) {
@@ -101,23 +111,6 @@ export function DashboardPage() {
       } catch {
         showToast('排序更新失败');
         loadDashboard();
-      }
-    } else if (type === 'milestones') {
-      for (const obj of newData.objectives) {
-        for (const kr of obj.key_results) {
-          if (kr.milestones && `milestones-${kr.id}` === source.droppableId) {
-            const [moved] = kr.milestones.splice(source.index, 1);
-            kr.milestones.splice(destination.index, 0, moved);
-            setData(newData);
-            try {
-              await reorderMilestones(kr.milestones.map((ms, i) => ({ id: ms.id, sort_order: i })));
-            } catch {
-              showToast('排序更新失败');
-              loadDashboard();
-            }
-            return;
-          }
-        }
       }
     }
   }, [data, showToast, loadDashboard]);
@@ -217,6 +210,20 @@ export function DashboardPage() {
       showToast(achieved ? '已标记为达成' : '已标记为未达成');
       loadDashboard();
     } catch { showToast('更新失败'); }
+  };
+
+  const handleEditObjective = (obj: Objective) => {
+    setEditingObj(obj);
+    setShowEditO(true);
+  };
+
+  const handleEditKeyResult = (kr: KeyResult) => {
+    setEditingKrForEdit(kr);
+    setShowEditKR(true);
+  };
+
+  const handleEditSave = () => {
+    loadDashboard();
   };
 
   const renderBody = () => {
@@ -329,7 +336,8 @@ export function DashboardPage() {
                           setProgressVal(String(kr.current_value ?? ''));
                           setToggledMsIds(new Set());
                           setShowProgress(true);
-                        }} onCreateKR={(objId) => {
+                        }}
+                        onCreateKR={(objId) => {
                           setKrObjectiveId(objId);
                           setKrDesc('');
                           setKrDescription('');
@@ -338,7 +346,9 @@ export function DashboardPage() {
                           setKrUnit('');
                           setKrMilestones(['']);
                           setShowCreateKR(true);
-                        }} />
+                        }}
+                        onEditObjective={handleEditObjective}
+                        onEditKRItem={handleEditKeyResult} />
                     )}
                   </Draggable>
                 ))}
@@ -541,16 +551,36 @@ export function DashboardPage() {
           </>
         )}
       </Modal>
+
+      {/* Edit Objective Modal */}
+      <EditObjectiveModal
+        isOpen={showEditO}
+        onClose={() => { setShowEditO(false); setEditingObj(null); }}
+        objective={editingObj}
+        onSaved={handleEditSave}
+        showToast={showToast}
+      />
+
+      {/* Edit Key Result Modal */}
+      <EditKeyResultModal
+        isOpen={showEditKR}
+        onClose={() => { setShowEditKR(false); setEditingKrForEdit(null); }}
+        keyResult={editingKrForEdit}
+        onSaved={handleEditSave}
+        showToast={showToast}
+      />
     </div>
   );
 }
 
-function OCard({ obj, provided, snapshot, onEditKR, onCreateKR }: {
+function OCard({ obj, provided, snapshot, onEditKR, onCreateKR, onEditObjective, onEditKRItem }: {
   obj: Objective;
   provided: DraggableProvided;
   snapshot: DraggableStateSnapshot;
   onEditKR: (kr: KeyResult) => void;
   onCreateKR: (objId: number) => void;
+  onEditObjective: (obj: Objective) => void;
+  onEditKRItem: (kr: KeyResult) => void;
 }) {
   const [expanded, setExpanded] = useState(true);
 
@@ -570,6 +600,16 @@ function OCard({ obj, provided, snapshot, onEditKR, onCreateKR }: {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div className={styles.oBadge}>{obj.progress}%</div>
+          <button className={styles.editBtn} onClick={(e) => {
+            e.stopPropagation();
+            onEditObjective(obj);
+          }} title="编辑">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            编辑
+          </button>
           <div className={styles.dragHandle} {...provided.dragHandleProps} onClick={(e) => e.stopPropagation()}>
             <svg width="14" height="14" viewBox="0 0 12 12" fill="currentColor" opacity="0.35">
               <circle cx="3" cy="2" r="1"/><circle cx="9" cy="2" r="1"/>
@@ -593,6 +633,7 @@ function OCard({ obj, provided, snapshot, onEditKR, onCreateKR }: {
                         provided={krDragProvided}
                         snapshot={krDragSnapshot}
                         onEdit={() => onEditKR(kr)}
+                        onEditKRItem={onEditKRItem}
                       />
                     )}
                   </Draggable>
@@ -608,11 +649,12 @@ function OCard({ obj, provided, snapshot, onEditKR, onCreateKR }: {
   );
 }
 
-function KRItem({ kr, provided, snapshot, onEdit }: {
+function KRItem({ kr, provided, snapshot, onEdit, onEditKRItem }: {
   kr: KeyResult;
   provided: DraggableProvided;
   snapshot: DraggableStateSnapshot;
   onEdit: () => void;
+  onEditKRItem: (kr: KeyResult) => void;
 }) {
   const p = kr.progress;
   const color = p >= 80 ? 'green' : p >= 50 ? 'blue' : p >= 25 ? 'orange' : 'red';
@@ -631,6 +673,16 @@ function KRItem({ kr, provided, snapshot, onEdit }: {
           {kr.type === 2 ? `${kr.milestones?.filter(m => m.completed).length ?? 0}/${kr.milestones?.length ?? 0} 节点` : ''}
           {kr.type === 3 ? (kr.is_achieved ? '已达成' : '未达成') : ''} ({p}%)
           </span>
+          <button className={styles.editBtn} onClick={(e) => {
+            e.stopPropagation();
+            onEditKRItem(kr);
+          }} title="编辑">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            编辑
+          </button>
           <div className={styles.dragHandle} {...provided.dragHandleProps}>
             <svg width="14" height="14" viewBox="0 0 12 12" fill="currentColor" opacity="0.35">
               <circle cx="3" cy="2" r="1"/><circle cx="9" cy="2" r="1"/>
@@ -645,39 +697,21 @@ function KRItem({ kr, provided, snapshot, onEdit }: {
         <div className={`${styles.krBarFill} ${styles[color]}`} style={{ width: `${Math.min(p, 100)}%` }} />
       </div>
       {kr.type === 2 && kr.milestones && (
-        <Droppable droppableId={`milestones-${kr.id}`} type="milestones">
-          {(msProvided) => (
-            <div className={styles.msList} ref={msProvided.innerRef} {...msProvided.droppableProps}>
-              {kr.milestones!.map((m, msIndex) => (
-                <Draggable key={m.id} draggableId={`ms-${m.id}`} index={msIndex}>
-                  {(msDragProvided, msDragSnapshot) => (
-                    <div
-                      className={`${styles.msItem} ${m.completed ? styles.msDone : ''} ${msDragSnapshot.isDragging ? styles.dragging : ''}`}
-                      ref={msDragProvided.innerRef as React.Ref<HTMLDivElement>}
-                      {...msDragProvided.draggableProps}
-                    >
-                      <div className={`${styles.msCheck} ${m.completed ? styles.msCheckDone : ''}`}>{m.completed ? '✓' : ''}</div>
-                      <span style={{ flex: 1 }}>{m.description}</span>
-                      <div className={styles.dragHandle} {...msDragProvided.dragHandleProps}>
-                        <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor" opacity="0.3">
-                          <circle cx="3" cy="2" r="1"/><circle cx="9" cy="2" r="1"/>
-                          <circle cx="3" cy="6" r="1"/><circle cx="9" cy="6" r="1"/>
-                          <circle cx="3" cy="10" r="1"/><circle cx="9" cy="10" r="1"/>
-                        </svg>
-                      </div>
-                    </div>
-                  )}
-                </Draggable>
-              ))}
-              {msProvided.placeholder}
+        <div className={styles.msList}>
+          {kr.milestones!.map((m) => (
+            <div key={m.id} className={`${styles.msItem} ${m.completed ? styles.msDone : ''}`}>
+              <div className={`${styles.msCheck} ${m.completed ? styles.msCheckDone : ''}`}>{m.completed ? '✓' : ''}</div>
+              <span style={{ flex: 1 }}>{m.description}</span>
             </div>
-          )}
-        </Droppable>
+          ))}
+        </div>
       )}
-      <button className={styles.updateBtn} onClick={onEdit}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><path d="M21 16v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg>
-        更新进度
-      </button>
+      <div className={styles.krActions}>
+        <button className={styles.updateBtn} onClick={onEdit}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><path d="M21 16v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg>
+          更新进度
+        </button>
+      </div>
     </div>
   );
 }
