@@ -64,9 +64,22 @@
 .msDone span { text-decoration: line-through; color: var(--text-muted); }
 
 /* Buttons */
-.updateBtn { margin-top: 10px; padding: 6px 14px; font-size: 12px; font-weight: 500; border: 1px solid var(--blue); color: var(--blue); background: var(--blue-light); border-radius: var(--radius-xs); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+.updateBtn { padding: 6px 14px; font-size: 12px; font-weight: 500; border: 1px solid var(--blue); color: var(--blue); background: var(--blue-light); border-radius: var(--radius-xs); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
 .addKrBtn { margin-top: 12px; padding: 8px 16px; font-size: 13px; font-weight: 500; border: 1px dashed var(--border); color: var(--text-secondary); background: none; border-radius: var(--radius-sm); cursor: pointer; width: 100%; }
 .addKrBtn:hover { border-color: var(--blue); color: var(--blue); }
+
+/* KR bottom action row */
+.krActions { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+
+/* Milestone editor entry */
+.editMsBtn { padding: 3px 8px; font-size: 12px; font-weight: 400; border: none; color: var(--text-muted); background: none; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; border-radius: var(--radius-xs); }
+.editMsBtn:hover { color: var(--blue); background: var(--blue-light); }
+
+/* Milestone editor modal */
+.editorDelBtn { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: none; background: none; color: var(--text-muted); cursor: pointer; border-radius: var(--radius-xs); font-size: 14px; }
+.editorDelBtn:hover { color: var(--red); background: var(--bg); }
+.editorAddBtn { margin-top: 8px; padding: 6px 12px; font-size: 13px; font-weight: 400; border: 1px dashed var(--border); color: var(--text-secondary); background: none; border-radius: var(--radius-sm); cursor: pointer; width: 100%; }
+.editorAddBtn:hover { border-color: var(--blue); color: var(--blue); }
 
 /* Form */
 .field { margin-bottom: 16px; }
