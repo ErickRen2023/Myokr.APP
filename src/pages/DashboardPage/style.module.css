@@ -94,6 +94,66 @@
 .cyclePreviewDate { font-size: 13px; color: var(--text-muted); }
 .krTitle { font-size: 14px; font-weight: 600; margin-bottom: 16px; }
 
+/* Edit button on O/KR card header */
+.editBtn {
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 400;
+  border: none;
+  color: var(--text-muted);
+  background: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  border-radius: var(--radius-xs);
+  white-space: nowrap;
+}
+.editBtn:hover {
+  color: var(--blue);
+  background: var(--blue-light);
+}
+
+/* Danger button for delete confirmation */
+.btnDanger {
+  padding: 10px 20px;
+  background: var(--red);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.btnDanger:hover {
+  opacity: 0.85;
+}
+.btnDanger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Modal footer with left-right split */
+.modalBtnsDual {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+.modalBtnsGroup {
+  display: flex;
+  gap: 10px;
+}
+
+/* Read-only type label in edit modal */
+.krTypeReadonly {
+  padding: 10px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
 @media (max-width: 768px) {
   .overview { grid-template-columns: 1fr 1fr; gap: 10px; }
   .topbar { flex-direction: column; gap: 10px; align-items: stretch; }

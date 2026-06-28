@@ -20,7 +20,8 @@ import {
 } from '../../utils/cycleDates';
 import type { DashboardData, Objective, KeyResult } from '../../types';
 import styles from './style.module.css';
-import { MilestoneEditorModal } from './MilestoneEditorModal';
+import { EditObjectiveModal } from './EditObjectiveModal';
+import { EditKeyResultModal } from './EditKeyResultModal';
 
 export function DashboardPage() {
   const { cycles, currentCycleId, loading: cyclesLoading, setCurrentCycleId, refreshCycles } = useCycles();
@@ -57,9 +58,13 @@ export function DashboardPage() {
   const [progressVal, setProgressVal] = useState('');
   const [toggledMsIds, setToggledMsIds] = useState<Set<number>>(new Set());
 
-  // Milestone editor modal
-  const [showMilestoneEditor, setShowMilestoneEditor] = useState(false);
-  const [editingKrForMilestones, setEditingKrForMilestones] = useState<KeyResult | null>(null);
+  // Edit O modal
+  const [showEditO, setShowEditO] = useState(false);
+  const [editingObj, setEditingObj] = useState<Objective | null>(null);
+
+  // Edit KR modal
+  const [showEditKR, setShowEditKR] = useState(false);
+  const [editingKrForEdit, setEditingKrForEdit] = useState<KeyResult | null>(null);
 
   const loadDashboard = useCallback(async () => {
     if (!currentCycleId) {
@@ -207,17 +212,17 @@ export function DashboardPage() {
     } catch { showToast('更新失败'); }
   };
 
-  const handleOpenMilestoneEditor = (kr: KeyResult) => {
-    setEditingKrForMilestones(kr);
-    setShowMilestoneEditor(true);
+  const handleEditObjective = (obj: Objective) => {
+    setEditingObj(obj);
+    setShowEditO(true);
   };
 
-  const handleCloseMilestoneEditor = () => {
-    setShowMilestoneEditor(false);
-    setEditingKrForMilestones(null);
+  const handleEditKeyResult = (kr: KeyResult) => {
+    setEditingKrForEdit(kr);
+    setShowEditKR(true);
   };
 
-  const handleSaveMilestoneEditor = () => {
+  const handleEditSave = () => {
     loadDashboard();
   };
 
@@ -332,7 +337,6 @@ export function DashboardPage() {
                           setToggledMsIds(new Set());
                           setShowProgress(true);
                         }}
-                        onEditMilestones={handleOpenMilestoneEditor}
                         onCreateKR={(objId) => {
                           setKrObjectiveId(objId);
                           setKrDesc('');
@@ -342,7 +346,9 @@ export function DashboardPage() {
                           setKrUnit('');
                           setKrMilestones(['']);
                           setShowCreateKR(true);
-                        }} />
+                        }}
+                        onEditObjective={handleEditObjective}
+                        onEditKRItem={handleEditKeyResult} />
                     )}
                   </Draggable>
                 ))}
@@ -546,25 +552,35 @@ export function DashboardPage() {
         )}
       </Modal>
 
-      {/* Milestone Editor Modal */}
-      <MilestoneEditorModal
-        kr={editingKrForMilestones}
-        isOpen={showMilestoneEditor}
-        onClose={handleCloseMilestoneEditor}
-        onSave={handleSaveMilestoneEditor}
+      {/* Edit Objective Modal */}
+      <EditObjectiveModal
+        isOpen={showEditO}
+        onClose={() => { setShowEditO(false); setEditingObj(null); }}
+        objective={editingObj}
+        onSaved={handleEditSave}
+        showToast={showToast}
+      />
+
+      {/* Edit Key Result Modal */}
+      <EditKeyResultModal
+        isOpen={showEditKR}
+        onClose={() => { setShowEditKR(false); setEditingKrForEdit(null); }}
+        keyResult={editingKrForEdit}
+        onSaved={handleEditSave}
         showToast={showToast}
       />
     </div>
   );
 }
 
-function OCard({ obj, provided, snapshot, onEditKR, onEditMilestones, onCreateKR }: {
+function OCard({ obj, provided, snapshot, onEditKR, onCreateKR, onEditObjective, onEditKRItem }: {
   obj: Objective;
   provided: DraggableProvided;
   snapshot: DraggableStateSnapshot;
   onEditKR: (kr: KeyResult) => void;
-  onEditMilestones: (kr: KeyResult) => void;
   onCreateKR: (objId: number) => void;
+  onEditObjective: (obj: Objective) => void;
+  onEditKRItem: (kr: KeyResult) => void;
 }) {
   const [expanded, setExpanded] = useState(true);
 
@@ -584,6 +600,16 @@ function OCard({ obj, provided, snapshot, onEditKR, onEditMilestones, onCreateKR
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div className={styles.oBadge}>{obj.progress}%</div>
+          <button className={styles.editBtn} onClick={(e) => {
+            e.stopPropagation();
+            onEditObjective(obj);
+          }} title="编辑">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            编辑
+          </button>
           <div className={styles.dragHandle} {...provided.dragHandleProps} onClick={(e) => e.stopPropagation()}>
             <svg width="14" height="14" viewBox="0 0 12 12" fill="currentColor" opacity="0.35">
               <circle cx="3" cy="2" r="1"/><circle cx="9" cy="2" r="1"/>
@@ -607,7 +633,7 @@ function OCard({ obj, provided, snapshot, onEditKR, onEditMilestones, onCreateKR
                         provided={krDragProvided}
                         snapshot={krDragSnapshot}
                         onEdit={() => onEditKR(kr)}
-                        onEditMilestones={() => onEditMilestones(kr)}
+                        onEditKRItem={onEditKRItem}
                       />
                     )}
                   </Draggable>
@@ -623,12 +649,12 @@ function OCard({ obj, provided, snapshot, onEditKR, onEditMilestones, onCreateKR
   );
 }
 
-function KRItem({ kr, provided, snapshot, onEdit, onEditMilestones }: {
+function KRItem({ kr, provided, snapshot, onEdit, onEditKRItem }: {
   kr: KeyResult;
   provided: DraggableProvided;
   snapshot: DraggableStateSnapshot;
   onEdit: () => void;
-  onEditMilestones?: () => void;
+  onEditKRItem: (kr: KeyResult) => void;
 }) {
   const p = kr.progress;
   const color = p >= 80 ? 'green' : p >= 50 ? 'blue' : p >= 25 ? 'orange' : 'red';
@@ -647,6 +673,16 @@ function KRItem({ kr, provided, snapshot, onEdit, onEditMilestones }: {
           {kr.type === 2 ? `${kr.milestones?.filter(m => m.completed).length ?? 0}/${kr.milestones?.length ?? 0} 节点` : ''}
           {kr.type === 3 ? (kr.is_achieved ? '已达成' : '未达成') : ''} ({p}%)
           </span>
+          <button className={styles.editBtn} onClick={(e) => {
+            e.stopPropagation();
+            onEditKRItem(kr);
+          }} title="编辑">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            编辑
+          </button>
           <div className={styles.dragHandle} {...provided.dragHandleProps}>
             <svg width="14" height="14" viewBox="0 0 12 12" fill="currentColor" opacity="0.35">
               <circle cx="3" cy="2" r="1"/><circle cx="9" cy="2" r="1"/>
@@ -675,15 +711,6 @@ function KRItem({ kr, provided, snapshot, onEdit, onEditMilestones }: {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><path d="M21 16v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg>
           更新进度
         </button>
-        {kr.type === 2 && (
-          <button className={styles.editMsBtn} onClick={(e) => { e.stopPropagation(); onEditMilestones?.(); }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-            </svg>
-            编辑节点
-          </button>
-        )}
       </div>
     </div>
   );
