@@ -583,6 +583,8 @@ function OCard({ obj, provided, snapshot, onEditKR, onCreateKR, onEditObjective,
   onEditKRItem: (kr: KeyResult) => void;
 }) {
   const [expanded, setExpanded] = useState(true);
+  const totalCount = obj.key_results.length;
+  const completedCount = obj.key_results.filter(kr => kr.is_achieved).length;
 
   return (
     <div
@@ -599,7 +601,7 @@ function OCard({ obj, provided, snapshot, onEditKR, onCreateKR, onEditObjective,
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div className={styles.oBadge}>{obj.progress}%</div>
+          <div className={styles.oBadge}>{completedCount}/{totalCount} ({obj.progress}%)</div>
           <button className={styles.editBtn} onClick={(e) => {
             e.stopPropagation();
             onEditObjective(obj);
