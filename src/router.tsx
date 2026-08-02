@@ -5,6 +5,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { useAuth } from './contexts/AuthContext';
+import { SsoCallbackPage } from './pages/SsoCallbackPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -18,6 +19,10 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '/auth/sso/callback',
+    element: <SsoCallbackPage />,
   },
   {
     path: '/',
