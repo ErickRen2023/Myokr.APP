@@ -1,3 +1,6 @@
-FROM busybox:latest
+FROM nginx:alpine
+
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY dist /usr/share/nginx/html
-CMD ["httpd", "-f", "-p", "3000", "-h", "/usr/share/nginx/html"]
+
+EXPOSE 3000
