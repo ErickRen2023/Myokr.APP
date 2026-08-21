@@ -1,5 +1,5 @@
 .header {
-  position: fixed; top: 20px; right: 28px; z-index: 20;
+  position: fixed; top: 32px; right: 28px; z-index: 20;
   display: flex; align-items: center; justify-content: flex-end;
 }
 .logo { display: none; }
