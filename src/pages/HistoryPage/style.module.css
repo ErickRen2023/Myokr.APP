@@ -3,14 +3,65 @@
 .title { font-size: 24px; font-weight: 700; margin-bottom: 24px; }
 .list { display: flex; flex-direction: column; gap: 12px; }
 .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; }
-.cardHeader { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; cursor: pointer; }
-.cardHeader:hover { background: var(--bg); }
+.cardHeader { display: flex; align-items: center; gap: 12px; padding: 12px 20px 12px 24px; }
+.cardToggle { display: flex; min-width: 0; flex: 1; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 0; cursor: pointer; border: 0; text-align: left; background: transparent; color: inherit; font: inherit; }
+.cardToggle:hover .cardTitle { color: var(--blue); }
+.cardToggle:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; border-radius: 4px; }
 .cardTitle { font-size: 15px; font-weight: 600; }
-.badge { font-size: 12px; padding: 2px 8px; border-radius: 20px; background: var(--border); color: var(--text-secondary); }
+.headerMeta { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.chevron { width: 20px; height: 20px; color: var(--text-muted); transition: transform .2s; }
+.chevronOpen { transform: rotate(180deg); }
+.badge { font-size: 12px; padding: 2px 8px; border-radius: 20px; background: var(--border); color: var(--text-secondary); white-space: nowrap; }
+.restoreButton { flex-shrink: 0; padding: 8px 12px; border: 1px solid var(--blue); border-radius: var(--radius-sm); background: var(--blue-light); color: var(--blue); font-size: 12px; font-weight: 600; cursor: pointer; }
+.restoreButton:hover:not(:disabled) { filter: brightness(.97); }
+.restoreButton:disabled { opacity: .55; cursor: wait; }
 .cardBody { padding: 16px 24px 20px; border-top: 1px solid var(--border); }
-.objItem { padding: 14px 16px; background: var(--bg); border-radius: var(--radius-sm); margin-bottom: 10px; }
+.reviewSection { margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.sectionTitle { margin: 0 0 12px; font-size: 15px; font-weight: 650; }
+.reviewField { margin-bottom: 12px; }
+.reviewField:last-child { margin-bottom: 0; }
+.reviewField h4 { margin: 0 0 4px; color: var(--text-secondary); font-size: 12px; }
+.reviewField p, .noReview { margin: 0; color: var(--text); font-size: 13px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+.noReview { color: var(--text-muted); }
+
+.objItem { margin-bottom: 14px; overflow: hidden; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); }
 .objItem:last-child { margin-bottom: 0; }
-.objTitle { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text-secondary); }
-.readBadge { font-size: 11px; padding: 2px 8px; border-radius: 20px; background: var(--orange); color: #fff; margin-left: 8px; }
-.krItem { font-size: 13px; color: var(--text-muted); padding: 4px 0; }
-.krDesc { font-size: 12px; color: var(--text-muted); }
+.objHeader { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 16px 20px; }
+.objNameGroup { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
+.objDot { flex: 0 0 auto; width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: var(--blue); }
+.objTitle { color: var(--text); font-size: 15px; font-weight: 600; }
+.objDescription { margin-top: 4px; color: var(--text-muted); font-size: 12px; line-height: 1.5; }
+.objBadge { flex-shrink: 0; padding: 4px 10px; border-radius: 20px; background: var(--blue-light); color: var(--blue); font-size: 12px; font-weight: 600; }
+.readBadge { margin-left: 8px; padding: 2px 8px; border-radius: 20px; background: var(--orange); color: #fff; font-size: 11px; font-weight: 500; vertical-align: 1px; }
+.krList { display: flex; flex-direction: column; gap: 10px; padding: 0 16px 16px; }
+.krItem { padding: 14px 16px; background: var(--bg); border-radius: var(--radius-sm); }
+.krHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.krTitle { color: var(--text); font-size: 14px; font-weight: 500; }
+.krValue { color: var(--blue); font-size: 12px; font-weight: 600; text-align: right; white-space: nowrap; }
+.krDescription { margin: -4px 0 8px; color: var(--text-muted); font-size: 12px; line-height: 1.45; }
+.krBar { height: 8px; overflow: hidden; border-radius: var(--radius-xs); background: var(--border); }
+.krBarFill { height: 100%; border-radius: inherit; transition: width .3s; }
+.green { background: var(--green); }
+.blue { background: var(--blue); }
+.orange { background: var(--orange); }
+.red { background: var(--red); }
+.milestoneList { display: flex; flex-direction: column; gap: 7px; margin-top: 10px; }
+.milestone { display: flex; align-items: flex-start; gap: 8px; color: var(--text-secondary); font-size: 12px; line-height: 1.4; }
+.milestoneDone { color: var(--text-muted); }
+.milestoneCheck { display: inline-flex; flex: 0 0 auto; width: 16px; height: 16px; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 50%; color: var(--green); font-size: 11px; }
+.milestoneDone .milestoneCheck { border-color: var(--green); background: var(--green); color: #fff; }
+
+@media (max-width: 640px) {
+  .cardHeader { align-items: flex-start; gap: 8px; padding: 12px; }
+  .cardToggle { align-items: flex-start; flex-direction: column; gap: 6px; }
+  .headerMeta { gap: 6px; }
+  .cardTitle { font-size: 13px; line-height: 1.4; }
+  .restoreButton { padding: 7px 9px; font-size: 11px; white-space: nowrap; }
+  .cardBody { padding: 14px 12px 16px; }
+  .objHeader { align-items: flex-start; padding: 14px 12px; }
+  .objBadge { padding: 4px 7px; font-size: 11px; }
+  .krList { padding: 0 10px 10px; }
+  .krItem { padding: 12px; }
+  .krHeader { flex-direction: column; gap: 4px; margin-bottom: 8px; }
+  .krValue { text-align: left; white-space: normal; }
+}

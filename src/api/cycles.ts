@@ -1,5 +1,5 @@
 import client from './client';
-import type { Cycle } from '../types';
+import type { Cycle, CycleReview, CycleReviewInput } from '../types';
 
 interface ApiResponse<T> {
   code: number;
@@ -26,4 +26,16 @@ export function archiveCycle(id: number): Promise<ApiResponse<null>> {
 
 export function reactivateCycle(id: number): Promise<ApiResponse<Cycle>> {
   return client.post('/cycles/reactivate', { id });
+}
+
+export function getCycleReview(cycleId: number): Promise<ApiResponse<{ review: CycleReview | null }>> {
+  return client.get(`/cycles/${cycleId}/review`);
+}
+
+export function saveCycleReview(data: CycleReviewInput): Promise<ApiResponse<{ review: CycleReview }>> {
+  return client.post('/cycles/review', data);
+}
+
+export function reviewAndArchiveCycle(data: CycleReviewInput): Promise<ApiResponse<{ review: CycleReview; archived: boolean }>> {
+  return client.post('/cycles/review-and-archive', data);
 }

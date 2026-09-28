@@ -37,8 +37,8 @@ export function CycleProvider({ children }: { children: ReactNode }) {
       if (res.code === 0) {
         const list = res.data.cycles;
         setCycles(list);
-        if (!currentCycleId && list.length > 0) {
-          setCurrentCycleId(list[0].id);
+        if (!list.some(cycle => cycle.id === currentCycleId)) {
+          setCurrentCycleId(list[0]?.id ?? null);
         }
       }
     } catch (e) {

@@ -7,6 +7,22 @@ export interface Cycle {
   status: number;
   objective_count?: number;
   remaining_days?: number;
+  review?: CycleReview | null;
+}
+
+export interface CycleReview {
+  cycle_id: number;
+  summary: string;
+  highlights: string;
+  blockers: string;
+  learnings: string;
+  next_steps: string;
+  updated_at?: string | null;
+}
+
+export type CycleReviewInput = Omit<CycleReview, 'updated_at'>;
+
+export interface CycleReviewDraft extends Omit<CycleReviewInput, 'cycle_id'> {
 }
 
 export interface Milestone {
