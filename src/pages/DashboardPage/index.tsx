@@ -5,7 +5,7 @@ import { useToast } from '../../contexts/ToastContext';
 import { fetchDashboard } from '../../api/dashboard';
 import { createObjective, reorderObjectives } from '../../api/objectives';
 import { createKeyResult, reorderKeyResults } from '../../api/keyResults';
-import { createCycle } from '../../api/cycles';
+import { createCycle, getCycleReview, reviewAndArchiveCycle, saveCycleReview } from '../../api/cycles';
 import { updateProgress, toggleAchieved } from '../../api/keyResults';
 import { toggleMilestone } from '../../api/milestones';
 import { Modal } from '../../components/common/Modal';
@@ -18,10 +18,11 @@ import {
   getCycleDisplayName,
   getYearOptions,
 } from '../../utils/cycleDates';
-import type { DashboardData, Objective, KeyResult } from '../../types';
+import type { CycleReview, CycleReviewDraft, DashboardData, Objective, KeyResult } from '../../types';
 import styles from './style.module.css';
 import { EditObjectiveModal } from './EditObjectiveModal';
 import { EditKeyResultModal } from './EditKeyResultModal';
+import { CycleReviewModal } from './CycleReviewModal';
 
 export function DashboardPage() {
   const { cycles, currentCycleId, loading: cyclesLoading, setCurrentCycleId, refreshCycles } = useCycles();
@@ -41,6 +42,13 @@ export function DashboardPage() {
   const [newCycleYear, setNewCycleYear] = useState(new Date().getFullYear());
   const [newCyclePeriod, setNewCyclePeriod] = useState(2);
   const [creatingCycle, setCreatingCycle] = useState(false);
+
+  // Cycle review and archive
+  const [showCycleReview, setShowCycleReview] = useState(false);
+  const [reviewCycle, setReviewCycle] = useState<(typeof cycles)[number] | null>(null);
+  const [cycleReview, setCycleReview] = useState<CycleReview | null>(null);
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewSaving, setReviewSaving] = useState(false);
 
   // Create KR modal
   const [showCreateKR, setShowCreateKR] = useState(false);
@@ -155,6 +163,56 @@ export function DashboardPage() {
     }
   };
 
+  const handleOpenCycleReview = async () => {
+    const selectedCycle = cycles.find(cycle => cycle.id === currentCycleId);
+    if (!selectedCycle) return;
+
+    setReviewCycle(selectedCycle);
+    setCycleReview(null);
+    setReviewLoading(true);
+    setShowCycleReview(true);
+    try {
+      const res = await getCycleReview(selectedCycle.id);
+      if (res.code === 0) setCycleReview(res.data.review);
+      else showToast(res.message || '加载复盘失败');
+    } catch {
+      showToast('加载复盘失败');
+    } finally {
+      setReviewLoading(false);
+    }
+  };
+
+  const handleSaveCycleReview = async (draft: CycleReviewDraft, archive = false) => {
+    if (!reviewCycle) return;
+    const payload = { cycle_id: reviewCycle.id, ...draft };
+    setReviewSaving(true);
+    try {
+      if (archive) {
+        const res = await reviewAndArchiveCycle(payload);
+        if (res.code !== 0) {
+          showToast(res.message || '归档失败');
+          return;
+        }
+        setShowCycleReview(false);
+        setReviewCycle(null);
+        showToast('阶段复盘已保存，周期已归档');
+        await refreshCycles();
+      } else {
+        const res = await saveCycleReview(payload);
+        if (res.code !== 0) {
+          showToast(res.message || '保存复盘失败');
+          return;
+        }
+        setCycleReview(res.data.review);
+        showToast('阶段复盘已保存');
+      }
+    } catch {
+      showToast(archive ? '归档失败' : '保存复盘失败');
+    } finally {
+      setReviewSaving(false);
+    }
+  };
+
   const handleCreateO = async () => {
     if (!newOTitle.trim()) { showToast('请输入目标标题'); return; }
     try {
@@ -263,15 +321,18 @@ export function DashboardPage() {
                 {cycles.map(c => <option key={c.id} value={c.id}>{c.name} · {c.start_date}–{c.end_date}</option>)}
               </select>
             </div>
-            <button className={styles.createBtn} onClick={() => {
-              setNewOTitle('');
-              setNewODesc('');
-              setNewOCycleId(currentCycleId);
-              setShowCreateO(true);
-            }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              创建新 O
-            </button>
+            <div className={styles.topActions}>
+              <button className={styles.reviewBtn} onClick={handleOpenCycleReview}>阶段复盘</button>
+              <button className={styles.createBtn} onClick={() => {
+                setNewOTitle('');
+                setNewODesc('');
+                setNewOCycleId(currentCycleId);
+                setShowCreateO(true);
+              }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                创建新 O
+              </button>
+            </div>
           </div>
           <EmptyState
             icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>}
@@ -296,17 +357,20 @@ export function DashboardPage() {
               {cycles.map(c => <option key={c.id} value={c.id}>{c.name} · {c.start_date}–{c.end_date}</option>)}
             </select>
           </div>
-          <button className={styles.createBtn} onClick={() => { setNewOTitle(''); setNewODesc(''); setNewOCycleId(currentCycleId); setShowCreateO(true); }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            创建新 O
-          </button>
+          <div className={styles.topActions}>
+            <button className={styles.reviewBtn} onClick={handleOpenCycleReview}>阶段复盘</button>
+            <button className={styles.createBtn} onClick={() => { setNewOTitle(''); setNewODesc(''); setNewOCycleId(currentCycleId); setShowCreateO(true); }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              创建新 O
+            </button>
+          </div>
         </div>
 
         <div className={styles.overview}>
           <div className={styles.statCard}>
             <div className={styles.statLabel}>完成率</div>
             <div className={`${styles.statValue} ${styles.green}`}>{data.summary.average_kr_progress}%</div>
-            <div className={styles.statSub}>{data.summary.completed_objectives} / {data.summary.total_key_results} KR 已完成</div>
+            <div className={styles.statSub}>{data.summary.completed_key_results ?? data.objectives.flatMap(obj => obj.key_results).filter(kr => kr.progress >= 100).length} / {data.summary.total_key_results} KR 已完成</div>
           </div>
           <div className={styles.statCard}>
             <div className={styles.statLabel}>距周期结束</div>
@@ -364,6 +428,18 @@ export function DashboardPage() {
   return (
     <div>
       {renderBody()}
+
+      <CycleReviewModal
+        isOpen={showCycleReview}
+        cycle={reviewCycle}
+        objectives={reviewCycle && data?.cycles.some(cycle => cycle.id === reviewCycle.id) ? data.objectives : []}
+        review={cycleReview}
+        loading={reviewLoading}
+        saving={reviewSaving}
+        onClose={() => setShowCycleReview(false)}
+        onSave={draft => handleSaveCycleReview(draft)}
+        onSaveAndArchive={draft => handleSaveCycleReview(draft, true)}
+      />
 
       {/* Create Cycle Modal */}
       <Modal isOpen={showCreateCycle} onClose={() => setShowCreateCycle(false)} title="创建新周期">
@@ -584,7 +660,7 @@ function OCard({ obj, provided, snapshot, onEditKR, onCreateKR, onEditObjective,
 }) {
   const [expanded, setExpanded] = useState(true);
   const totalCount = obj.key_results.length;
-  const completedCount = obj.key_results.filter(kr => kr.is_achieved).length;
+  const completedCount = obj.key_results.filter(kr => kr.progress >= 100).length;
 
   return (
     <div

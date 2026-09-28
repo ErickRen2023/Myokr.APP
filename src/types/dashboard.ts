@@ -3,6 +3,7 @@ import type { Cycle, Objective, KeyResult } from './entities';
 export interface DashboardStats {
   total_objectives: number;
   completed_objectives: number;
+  completed_key_results?: number;
   in_progress_objectives: number;
   total_key_results: number;
   average_kr_progress: number;
