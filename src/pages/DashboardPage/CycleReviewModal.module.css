@@ -69,7 +69,7 @@
 .referencePickerHeading span { color: var(--text-muted); font-size: 11px; }
 .referenceEmpty { margin: 8px 0 2px; color: var(--text-muted); font-size: 12px; }
 .referenceList { display: flex; max-height: 190px; flex-direction: column; gap: 7px; overflow-y: auto; padding-right: 2px; }
-.referenceGroup { overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--card); }
+.referenceGroup { flex: 0 0 auto; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--card); }
 .referenceItem { display: flex; width: 100%; align-items: center; gap: 9px; box-sizing: border-box; padding: 8px 10px; border: 0; background: transparent; color: var(--text); text-align: left; cursor: pointer; }
 .referenceItem:hover { background: var(--blue-light); }
 .referenceItem:disabled { opacity: .55; cursor: not-allowed; }
