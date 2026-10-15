@@ -5,6 +5,7 @@ export interface ProgressRecord {
   id: number;
   value: number;
   is_achieved: boolean;
+  target_snapshot?: { value: number; unit: string; operator?: 'gte' | 'lte' } | null;
   recorded_at: string;
 }
 

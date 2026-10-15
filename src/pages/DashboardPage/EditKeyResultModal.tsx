@@ -5,6 +5,8 @@ import { updateKeyResult, archiveKeyResult } from '../../api/keyResults';
 import { createMilestone, updateMilestone, deleteMilestone, reorderMilestones } from '../../api/milestones';
 import type { KeyResult, Milestone } from '../../types';
 import styles from './style.module.css';
+import { NumericRuleField } from '../../components/common/NumericRuleField';
+import { numericRule, validTarget, type NumericOperator } from '../../utils/keyResults';
 
 const TYPE_LABELS: Record<number, string> = { 1: '数值型', 2: '里程碑型', 3: '布尔型' };
 
@@ -21,6 +23,7 @@ export function EditKeyResultModal({ isOpen, onClose, keyResult, onSaved, showTo
   const [description, setDescription] = useState('');
   const [targetVal, setTargetVal] = useState('');
   const [unit, setUnit] = useState('');
+  const [operator, setOperator] = useState<NumericOperator>('gte');
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -40,6 +43,7 @@ export function EditKeyResultModal({ isOpen, onClose, keyResult, onSaved, showTo
       if (keyResult.type === 1) {
         setTargetVal(String((keyResult.target as Record<string, unknown>)?.value ?? ''));
         setUnit(String((keyResult.target as Record<string, unknown>)?.unit ?? ''));
+        setOperator(keyResult.target.operator === 'lte' ? 'lte' : 'gte');
       }
 
       if (keyResult.type === 2 && keyResult.milestones) {
@@ -72,15 +76,15 @@ export function EditKeyResultModal({ isOpen, onClose, keyResult, onSaved, showTo
 
     let target: Record<string, unknown> | undefined;
     if (keyResult!.type === 1) {
-      if (!targetVal.trim() || isNaN(Number(targetVal))) {
-        showToast('请输入有效的目标值');
+      if (!validTarget(targetVal, operator)) {
+        showToast('至少达到的目标值须大于 0，不超过的目标值须大于等于 0');
         return;
       }
       if (!unit.trim()) {
         showToast('请输入单位');
         return;
       }
-      target = { value: Number(targetVal), unit: unit.trim() };
+      target = { ...keyResult!.target, value: Number(targetVal), unit: unit.trim(), operator };
     }
 
     setSaving(true);
@@ -202,6 +206,8 @@ export function EditKeyResultModal({ isOpen, onClose, keyResult, onSaved, showTo
         />
       </div>
       {krType === 1 && (
+        <>
+        <NumericRuleField operator={operator} onChange={setOperator} />
         <div style={{ display: 'flex', gap: 8 }}>
           <div className={styles.field} style={{ flex: 1 }}>
             <label className={styles.fLabel}>目标值 *</label>
@@ -223,6 +229,9 @@ export function EditKeyResultModal({ isOpen, onClose, keyResult, onSaved, showTo
             />
           </div>
         </div>
+        <p>{numericRule({ operator, value: targetVal || '?', unit })}</p>
+        <p>修改规则将重新判断当前值，并新增一条记录；过去记录保留当时的规则和判定。</p>
+        </>
       )}
       {krType === 2 && (
         <div className={styles.field}>
