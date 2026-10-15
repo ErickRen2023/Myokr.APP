@@ -40,6 +40,7 @@ export interface KeyResult {
   type: number;
   target: Record<string, unknown>;
   current_value: number | null;
+  usage_percent?: number | null;
   is_achieved: boolean;
   sort_order: number;
   status: number;

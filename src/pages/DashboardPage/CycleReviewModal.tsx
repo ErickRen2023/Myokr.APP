@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { OkrReferenceEditor, type OkrReferenceEditorHandle } from '../../components/common/OkrReference';
+import { metricLabel } from '../../utils/keyResults';
 import type { Cycle, CycleReview, CycleReviewDraft, Objective } from '../../types';
 import styles from './CycleReviewModal.module.css';
 
@@ -100,7 +101,7 @@ export function CycleReviewModal({
       <details className={styles.progressDetails}>
         <summary className={styles.progressSummary}>
           <span>查看本周期进展</span>
-          <span>{objectives.length} 个目标 · {keyResultCount} 个 KR · 平均完成 {averageProgress}%</span>
+          <span>{objectives.length} 个目标 · {keyResultCount} 个 KR · 当前达成度 {averageProgress}%</span>
         </summary>
         {loading ? (
           <p className={styles.progressEmpty}>正在加载已保存的复盘…</p>
@@ -119,7 +120,7 @@ export function CycleReviewModal({
                     {objective.key_results.map(keyResult => (
                       <li key={keyResult.id}>
                         <span>{keyResult.title}</span>
-                        <span>{keyResult.progress}%</span>
+                        <span>{metricLabel(keyResult)}</span>
                       </li>
                     ))}
                   </ul>
@@ -202,7 +203,7 @@ export function CycleReviewModal({
                           <span className={styles.referenceTitle}>{keyResult.title}</span>
                           <span className={styles.referenceMeta}>{objective.title}</span>
                         </span>
-                        <span className={styles.referenceProgress}>{keyResult.progress}%</span>
+                        <span className={styles.referenceProgress}>{metricLabel(keyResult)}</span>
                       </button>
                     ))}
                   </div>

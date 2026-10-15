@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { reactivateCycle } from '../../api/cycles';
 import { listHistoryCycles, listHistoryObjectives } from '../../api/history';
 import { OkrReferenceText } from '../../components/common/OkrReference';
+import { ProgressHistory } from '../../components/common/ProgressHistory';
+import { metricBar, numericDetails } from '../../utils/keyResults';
 import { useCycles } from '../../contexts/CycleContext';
 import { useToast } from '../../contexts/ToastContext';
 import type { Cycle, CycleReview, KeyResult, Objective } from '../../types';
@@ -147,7 +149,7 @@ export function HistoryPage() {
                             {obj.description && <div className={styles.objDescription}>{obj.description}</div>}
                           </div>
                         </div>
-                        <span className={styles.objBadge}>{obj.key_results.filter(kr => kr.progress >= 100).length}/{obj.key_results.length} ({obj.progress}%)</span>
+                        <span className={styles.objBadge}>{obj.key_results.filter(kr => kr.is_achieved).length}/{obj.key_results.length} 达成 ({obj.progress}%)</span>
                       </div>
                       <div className={styles.krList}>
                         {obj.key_results.map(kr => <HistoryKeyResult key={kr.id} kr={kr} />)}
@@ -166,9 +168,9 @@ export function HistoryPage() {
 }
 
 function HistoryKeyResult({ kr }: { kr: KeyResult }) {
-  const color = kr.progress >= 80 ? 'green' : kr.progress >= 50 ? 'blue' : kr.progress >= 25 ? 'orange' : 'red';
+  const bar = metricBar(kr);
   const value = kr.type === 1
-    ? `${kr.current_value ?? 0} / ${kr.target.value ?? '?'} ${kr.target.unit ?? ''}`
+    ? numericDetails(kr, true)
     : kr.type === 2
       ? `${kr.milestones?.filter(milestone => milestone.completed).length ?? 0}/${kr.milestones?.length ?? 0} 节点`
       : kr.is_achieved ? '已达成' : '未达成';
@@ -177,12 +179,13 @@ function HistoryKeyResult({ kr }: { kr: KeyResult }) {
     <div className={styles.krItem}>
       <div className={styles.krHeader}>
         <span className={styles.krTitle}>{kr.title}</span>
-        <span className={styles.krValue}>{value} ({kr.progress}%)</span>
+        <span className={styles.krValue}>{value} {kr.type !== 1 ? `(${kr.progress}%)` : ''}</span>
       </div>
       {kr.description && <div className={styles.krDescription}>{kr.description}</div>}
-      <div className={styles.krBar}>
-        <div className={`${styles.krBarFill} ${styles[color]}`} style={{ width: `${Math.min(kr.progress, 100)}%` }} />
+      <div className={styles.krBar} role="img" aria-label={`${bar.label}：${value}`}>
+        <div className={`${styles.krBarFill} ${styles[bar.color]}`} style={{ width: `${bar.width}%` }} />
       </div>
+      {kr.type === 1 && <ProgressHistory keyResultId={kr.id} />}
       {kr.type === 2 && kr.milestones && kr.milestones.length > 0 && (
         <div className={styles.milestoneList}>
           {kr.milestones.map(milestone => (

@@ -37,7 +37,7 @@
 .krItem { padding: 14px 16px; background: var(--bg); border-radius: var(--radius-sm); }
 .krHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
 .krTitle { color: var(--text); font-size: 14px; font-weight: 500; }
-.krValue { color: var(--blue); font-size: 12px; font-weight: 600; text-align: right; white-space: nowrap; }
+.krValue { color: var(--text-secondary); font-size: 12px; font-weight: 600; text-align: right; white-space: normal; overflow-wrap: anywhere; }
 .krDescription { margin: -4px 0 8px; color: var(--text-muted); font-size: 12px; line-height: 1.45; }
 .krBar { height: 8px; overflow: hidden; border-radius: var(--radius-xs); background: var(--border); }
 .krBarFill { height: 100%; border-radius: inherit; transition: width .3s; }

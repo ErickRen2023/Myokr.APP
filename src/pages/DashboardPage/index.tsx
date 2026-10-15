@@ -23,6 +23,9 @@ import styles from './style.module.css';
 import { EditObjectiveModal } from './EditObjectiveModal';
 import { EditKeyResultModal } from './EditKeyResultModal';
 import { CycleReviewModal } from './CycleReviewModal';
+import { NumericRuleField } from '../../components/common/NumericRuleField';
+import { ProgressHistory } from '../../components/common/ProgressHistory';
+import { isUpperBound, metricBar, numericDetails, numericPreview, numericRule, validTarget, type NumericOperator } from '../../utils/keyResults';
 
 export function DashboardPage() {
   const { cycles, currentCycleId, loading: cyclesLoading, setCurrentCycleId, refreshCycles } = useCycles();
@@ -58,6 +61,7 @@ export function DashboardPage() {
   const [krType, setKrType] = useState(1);
   const [krTargetVal, setKrTargetVal] = useState('');
   const [krUnit, setKrUnit] = useState('');
+  const [krOperator, setKrOperator] = useState<NumericOperator>('gte');
   const [krMilestones, setKrMilestones] = useState<string[]>(['']);
 
   // Update progress modal
@@ -228,11 +232,11 @@ export function DashboardPage() {
   const handleCreateKR = async () => {
     if (!krDesc.trim()) { showToast('请输入 KR 标题'); return; }
     if (krType === 1) {
-      if (!krTargetVal.trim() || isNaN(Number(krTargetVal))) { showToast('请输入有效的目标值'); return; }
+      if (!validTarget(krTargetVal, krOperator)) { showToast('至少达到的目标值须大于 0，不超过的目标值须大于等于 0'); return; }
       if (!krUnit.trim()) { showToast('请输入单位'); return; }
     }
     try {
-      const target: Record<string, unknown> = krType === 1 ? { value: Number(krTargetVal), unit: krUnit.trim() } : {};
+      const target: Record<string, unknown> = krType === 1 ? { value: Number(krTargetVal), unit: krUnit.trim(), operator: krOperator } : {};
       const milestones = krType === 2 ? krMilestones.filter(m => m.trim()).map((m, i) => ({ description: m, sort_order: i })) : undefined;
       await createKeyResult({ objective_id: krObjectiveId, title: krDesc.trim(), description: krDescription.trim() || undefined, type: krType, target, milestones });
       setShowCreateKR(false);
@@ -245,8 +249,8 @@ export function DashboardPage() {
     if (!editingKR) return;
     try {
       if (editingKR.type === 1) {
-        const val = parseFloat(progressVal);
-        if (isNaN(val) || val < 0) { showToast('请输入有效数值'); return; }
+        const val = Number(progressVal);
+        if (!progressVal.trim() || !Number.isFinite(val) || val < 0) { showToast('请输入有效数值'); return; }
         await updateProgress(editingKR.id, val);
       } else if (editingKR.type === 2) {
         for (const msId of toggledMsIds) {
@@ -368,9 +372,10 @@ export function DashboardPage() {
 
         <div className={styles.overview}>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>完成率</div>
+            <div className={styles.statLabel}>当前达成度</div>
             <div className={`${styles.statValue} ${styles.green}`}>{data.summary.average_kr_progress}%</div>
-            <div className={styles.statSub}>{data.summary.completed_key_results ?? data.objectives.flatMap(obj => obj.key_results).filter(kr => kr.progress >= 100).length} / {data.summary.total_key_results} KR 已完成</div>
+            <div className={styles.statSub}>{data.summary.completed_key_results ?? data.objectives.flatMap(obj => obj.key_results).filter(kr => kr.is_achieved).length} / {data.summary.total_key_results} KR 当前达标</div>
+            <div className={styles.statSub}>不超过型按当前是否达标计 100% 或 0%，未记录计 0%</div>
           </div>
           <div className={styles.statCard}>
             <div className={styles.statLabel}>距周期结束</div>
@@ -408,6 +413,7 @@ export function DashboardPage() {
                           setKrType(1);
                           setKrTargetVal('');
                           setKrUnit('');
+                          setKrOperator('gte');
                           setKrMilestones(['']);
                           setShowCreateKR(true);
                         }}
@@ -541,16 +547,20 @@ export function DashboardPage() {
           </select>
         </div>
         {krType === 1 && (
-          <div style={{ display: 'flex', gap: 8 }}>
-            <div className={styles.field} style={{ flex: 1 }}>
-              <label className={styles.fLabel}>目标值 <span style={{ color: 'var(--red)' }}>*</span></label>
-              <input className={styles.fInput} type="number" value={krTargetVal} onChange={e => setKrTargetVal(e.target.value)} placeholder="500" required />
+          <>
+            <NumericRuleField operator={krOperator} onChange={setKrOperator} />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <div className={styles.field} style={{ flex: 1 }}>
+                <label className={styles.fLabel} htmlFor="create-kr-target">目标值 <span style={{ color: 'var(--red)' }}>*</span></label>
+                <input id="create-kr-target" className={styles.fInput} type="number" min="0" step="any" value={krTargetVal} onChange={e => setKrTargetVal(e.target.value)} placeholder="500" required />
+              </div>
+              <div className={styles.field} style={{ flex: 1 }}>
+                <label className={styles.fLabel} htmlFor="create-kr-unit">单位 <span style={{ color: 'var(--red)' }}>*</span></label>
+                <input id="create-kr-unit" className={styles.fInput} value={krUnit} onChange={e => setKrUnit(e.target.value)} placeholder="Star" />
+              </div>
             </div>
-            <div className={styles.field} style={{ flex: 1 }}>
-              <label className={styles.fLabel}>单位 <span style={{ color: 'var(--red)' }}>*</span></label>
-              <input className={styles.fInput} value={krUnit} onChange={e => setKrUnit(e.target.value)} placeholder="Star" />
-            </div>
-          </div>
+            <p>{numericRule({ operator: krOperator, value: krTargetVal || '?', unit: krUnit })}</p>
+          </>
         )}
         {krType === 2 && (
           <div className={styles.field}>
@@ -581,8 +591,10 @@ export function DashboardPage() {
             <div className={styles.krTitle}>{editingKR.title}</div>
             {editingKR.type === 1 && (
               <div className={styles.field}>
-                <label className={styles.fLabel}>当前进展</label>
-                <input className={styles.fInput} type="number" step="any" value={progressVal} onChange={e => setProgressVal(e.target.value)} style={{ fontSize: 16, textAlign: 'center' }} />
+                <label className={styles.fLabel} htmlFor="kr-current-value">当前累计值 · {numericRule(editingKR.target)}</label>
+                <input id="kr-current-value" className={styles.fInput} type="number" min="0" step="any" value={progressVal} onChange={e => setProgressVal(e.target.value)} style={{ fontSize: 16, textAlign: 'center' }} />
+                <p aria-live="polite">{numericPreview(editingKR, progressVal)}</p>
+                <ProgressHistory key={editingKR.id} keyResultId={editingKR.id} />
               </div>
             )}
             {editingKR.type === 2 && editingKR.milestones && (
@@ -660,7 +672,7 @@ function OCard({ obj, provided, snapshot, onEditKR, onCreateKR, onEditObjective,
 }) {
   const [expanded, setExpanded] = useState(true);
   const totalCount = obj.key_results.length;
-  const completedCount = obj.key_results.filter(kr => kr.progress >= 100).length;
+  const completedCount = obj.key_results.filter(kr => kr.is_achieved).length;
 
   return (
     <div
@@ -677,7 +689,7 @@ function OCard({ obj, provided, snapshot, onEditKR, onCreateKR, onEditObjective,
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div className={styles.oBadge}>{completedCount}/{totalCount} ({obj.progress}%)</div>
+          <div className={styles.oBadge}>{completedCount}/{totalCount} 当前达标 ({obj.progress}%)</div>
           <button className={styles.editBtn} onClick={(e) => {
             e.stopPropagation();
             onEditObjective(obj);
@@ -734,8 +746,7 @@ function KRItem({ kr, provided, snapshot, onEdit, onEditKRItem }: {
   onEdit: () => void;
   onEditKRItem: (kr: KeyResult) => void;
 }) {
-  const p = kr.progress;
-  const color = p >= 80 ? 'green' : p >= 50 ? 'blue' : p >= 25 ? 'orange' : 'red';
+  const bar = metricBar(kr);
 
   return (
     <div
@@ -747,9 +758,9 @@ function KRItem({ kr, provided, snapshot, onEdit, onEditKRItem }: {
         <span className={styles.krTitle}>{kr.title}</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className={styles.krValue}>
-          {kr.type === 1 ? `${kr.current_value ?? 0} / ${(kr.target as Record<string, unknown>)?.value ?? '?'} ${(kr.target as Record<string, unknown>)?.unit ?? ''}` : ''}
+          {kr.type === 1 ? numericDetails(kr) : ''}
           {kr.type === 2 ? `${kr.milestones?.filter(m => m.completed).length ?? 0}/${kr.milestones?.length ?? 0} 节点` : ''}
-          {kr.type === 3 ? (kr.is_achieved ? '已达成' : '未达成') : ''} ({p}%)
+          {kr.type === 3 ? (kr.is_achieved ? '已达成' : '未达成') : ''} {kr.type !== 1 ? `(${kr.progress}%)` : ''}
           </span>
           <button className={styles.editBtn} onClick={(e) => {
             e.stopPropagation();
@@ -771,9 +782,10 @@ function KRItem({ kr, provided, snapshot, onEdit, onEditKRItem }: {
         </div>
       </div>
       {kr.description && <div className={styles.krDesc}>{kr.description}</div>}
-      <div className={styles.krBar}>
-        <div className={`${styles.krBarFill} ${styles[color]}`} style={{ width: `${Math.min(p, 100)}%` }} />
+      <div className={styles.krBar} role="img" aria-label={`${bar.label}：${kr.type === 1 ? numericDetails(kr) : `${kr.progress}%`}`}>
+        <div className={`${styles.krBarFill} ${styles[bar.color]}`} style={{ width: `${bar.width}%` }} />
       </div>
+      {isUpperBound(kr) && <p className={styles.krDesc}>额度使用 · 周期内需持续保持达标，归档时确认最终结果</p>}
       {kr.type === 2 && kr.milestones && (
         <div className={styles.msList}>
           {kr.milestones!.map((m) => (

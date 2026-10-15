@@ -2,6 +2,7 @@ import { Fragment, forwardRef, useEffect, useImperativeHandle, useRef } from 're
 import type { ClipboardEvent, KeyboardEvent } from 'react';
 import type { KeyResult, Objective } from '../../types';
 import styles from './OkrReference.module.css';
+import { metricLabel, numericDetails } from '../../utils/keyResults';
 
 type ReferenceKind = 'o' | 'kr';
 
@@ -105,10 +106,7 @@ function getReferenceParts(value: string, objectives: Objective[]) {
 
 function progressDetails(keyResult: KeyResult) {
   if (keyResult.type !== 1) return null;
-  const target = keyResult.target as Record<string, unknown>;
-  const targetValue = target.value ?? '?';
-  const unit = typeof target.unit === 'string' && target.unit ? ` ${target.unit}` : '';
-  return `当前值 ${keyResult.current_value ?? 0}/${targetValue}${unit}`;
+  return numericDetails(keyResult);
 }
 
 function ReferenceChip({ kind, id, objectives }: ReferencePart & { objectives: Objective[] }) {
@@ -125,15 +123,15 @@ function ReferenceChip({ kind, id, objectives }: ReferencePart & { objectives: O
 
   const { objective, keyResult } = reference;
   const title = keyResult ? `${objective.title} / ${keyResult.title}` : objective.title;
-  const progress = keyResult?.progress ?? objective.progress;
+  const progress = keyResult ? metricLabel(keyResult) : `${objective.progress}%`;
   const details = keyResult ? progressDetails(keyResult) : null;
-  const accessibleLabel = `${badge}：${title}（完成度 ${progress}%${details ? `，${details}` : ''}）`;
+  const accessibleLabel = `${badge}：${title}（达成情况 ${progress}${details ? `，${details}` : ''}）`;
 
   return (
     <span className={styles.referenceChip} data-kind={kind} title={accessibleLabel} aria-label={accessibleLabel} contentEditable={false}>
       <span className={styles.referenceBadge}>{badge}</span>
       <span className={styles.referenceTitle}>{title}</span>
-      <span className={styles.referenceProgress}>完成度 {progress}%</span>
+      <span className={styles.referenceProgress}>达成情况 {progress}</span>
       {details && <span className={styles.referenceDetails}>{details}</span>}
     </span>
   );
@@ -175,7 +173,7 @@ function createChipNode(kind: ReferenceKind, id: number, objectives: Objective[]
   title.textContent = keyResult ? `${objective.title} / ${keyResult.title}` : objective.title;
   const progress = document.createElement('span');
   progress.className = styles.referenceProgress;
-  progress.textContent = `完成度 ${keyResult?.progress ?? objective.progress}%`;
+  progress.textContent = `达成情况 ${keyResult ? metricLabel(keyResult) : `${objective.progress}%`}`;
   span.append(title, progress);
   const detailsText = keyResult ? progressDetails(keyResult) : null;
   if (detailsText) {
