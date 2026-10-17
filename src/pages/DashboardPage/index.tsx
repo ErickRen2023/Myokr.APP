@@ -24,8 +24,7 @@ import { EditObjectiveModal } from './EditObjectiveModal';
 import { EditKeyResultModal } from './EditKeyResultModal';
 import { CycleReviewModal } from './CycleReviewModal';
 import { NumericRuleField } from '../../components/common/NumericRuleField';
-import { ProgressHistory } from '../../components/common/ProgressHistory';
-import { isUpperBound, metricBar, numericDetails, numericPreview, numericRule, validTarget, type NumericOperator } from '../../utils/keyResults';
+import { isUpperBound, metricBar, numericDetails, numericRule, validTarget, type NumericOperator } from '../../utils/keyResults';
 
 export function DashboardPage() {
   const { cycles, currentCycleId, loading: cyclesLoading, setCurrentCycleId, refreshCycles } = useCycles();
@@ -548,7 +547,7 @@ export function DashboardPage() {
         </div>
         {krType === 1 && (
           <>
-            <NumericRuleField operator={krOperator} onChange={setKrOperator} />
+            <NumericRuleField operator={krOperator} onChange={setKrOperator} classNames={{ field: styles.field, label: styles.fLabel, input: styles.fInput }} />
             <div style={{ display: 'flex', gap: 8 }}>
               <div className={styles.field} style={{ flex: 1 }}>
                 <label className={styles.fLabel} htmlFor="create-kr-target">目标值 <span style={{ color: 'var(--red)' }}>*</span></label>
@@ -559,7 +558,6 @@ export function DashboardPage() {
                 <input id="create-kr-unit" className={styles.fInput} value={krUnit} onChange={e => setKrUnit(e.target.value)} placeholder="Star" />
               </div>
             </div>
-            <p>{numericRule({ operator: krOperator, value: krTargetVal || '?', unit: krUnit })}</p>
           </>
         )}
         {krType === 2 && (
@@ -593,8 +591,6 @@ export function DashboardPage() {
               <div className={styles.field}>
                 <label className={styles.fLabel} htmlFor="kr-current-value">当前累计值 · {numericRule(editingKR.target)}</label>
                 <input id="kr-current-value" className={styles.fInput} type="number" min="0" step="any" value={progressVal} onChange={e => setProgressVal(e.target.value)} style={{ fontSize: 16, textAlign: 'center' }} />
-                <p aria-live="polite">{numericPreview(editingKR, progressVal)}</p>
-                <ProgressHistory key={editingKR.id} keyResultId={editingKR.id} />
               </div>
             )}
             {editingKR.type === 2 && editingKR.milestones && (

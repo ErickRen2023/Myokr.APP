@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { reactivateCycle } from '../../api/cycles';
 import { listHistoryCycles, listHistoryObjectives } from '../../api/history';
 import { OkrReferenceText } from '../../components/common/OkrReference';
-import { ProgressHistory } from '../../components/common/ProgressHistory';
 import { metricBar, numericDetails } from '../../utils/keyResults';
 import { useCycles } from '../../contexts/CycleContext';
 import { useToast } from '../../contexts/ToastContext';
@@ -185,7 +184,6 @@ function HistoryKeyResult({ kr }: { kr: KeyResult }) {
       <div className={styles.krBar} role="img" aria-label={`${bar.label}：${value}`}>
         <div className={`${styles.krBarFill} ${styles[bar.color]}`} style={{ width: `${bar.width}%` }} />
       </div>
-      {kr.type === 1 && <ProgressHistory keyResultId={kr.id} />}
       {kr.type === 2 && kr.milestones && kr.milestones.length > 0 && (
         <div className={styles.milestoneList}>
           {kr.milestones.map(milestone => (
