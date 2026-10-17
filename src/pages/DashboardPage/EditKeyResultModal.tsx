@@ -6,7 +6,7 @@ import { createMilestone, updateMilestone, deleteMilestone, reorderMilestones } 
 import type { KeyResult, Milestone } from '../../types';
 import styles from './style.module.css';
 import { NumericRuleField } from '../../components/common/NumericRuleField';
-import { numericRule, validTarget, type NumericOperator } from '../../utils/keyResults';
+import { validTarget, type NumericOperator } from '../../utils/keyResults';
 
 const TYPE_LABELS: Record<number, string> = { 1: '数值型', 2: '里程碑型', 3: '布尔型' };
 
@@ -207,7 +207,7 @@ export function EditKeyResultModal({ isOpen, onClose, keyResult, onSaved, showTo
       </div>
       {krType === 1 && (
         <>
-        <NumericRuleField operator={operator} onChange={setOperator} />
+        <NumericRuleField operator={operator} onChange={setOperator} classNames={{ field: styles.field, label: styles.fLabel, input: styles.fInput }} />
         <div style={{ display: 'flex', gap: 8 }}>
           <div className={styles.field} style={{ flex: 1 }}>
             <label className={styles.fLabel}>目标值 *</label>
@@ -229,8 +229,6 @@ export function EditKeyResultModal({ isOpen, onClose, keyResult, onSaved, showTo
             />
           </div>
         </div>
-        <p>{numericRule({ operator, value: targetVal || '?', unit })}</p>
-        <p>修改规则将重新判断当前值，并新增一条记录；过去记录保留当时的规则和判定。</p>
         </>
       )}
       {krType === 2 && (
